@@ -1,0 +1,201 @@
+DUPSCAN REPORT
+Scan path : C:\all\home
+Generated : 2026-05-02 15:55:55
+============================================================
+
+[Photos] B612_20230123_113153_182.jpg
+  Size: 100.8 KB x2 copies  |  Wasted: 100.8 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\B612_20230123_113153_182.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\share me\B612_20230123_113153_182.jpg
+
+[Photos] IMG-20220726-WA0037.jpg
+  Size: 96.9 KB x2 copies  |  Wasted: 96.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\IMG-20220726-WA0037.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\Snapchat\Snapchat-1204934938.jpg
+
+[Photos] Snapchat-1476573553.jpg
+  Size: 95.3 KB x2 copies  |  Wasted: 95.3 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1476573553.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-598101241.jpg
+
+[Photos] IMG-20220726-WA0034.jpg
+  Size: 79.5 KB x2 copies  |  Wasted: 79.5 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\IMG-20220726-WA0034.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\Snapchat\Snapchat-769713735.jpg
+
+[Photos] Snapchat-1422259803.jpg
+  Size: 79.2 KB x2 copies  |  Wasted: 79.2 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1422259803.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-490173241.jpg
+
+[Photos] IMG-20220726-WA0033.jpg
+  Size: 72.1 KB x2 copies  |  Wasted: 72.1 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\IMG-20220726-WA0033.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\Snapchat\Snapchat-2114365405.jpg
+
+[Photos] Snapchat-103232798.jpg
+  Size: 67.6 KB x2 copies  |  Wasted: 67.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-103232798.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-103232798.jpg
+
+[Photos] Snapchat-1102940234.jpg
+  Size: 66.5 KB x2 copies  |  Wasted: 66.5 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1102940234.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1201495964.jpg
+
+[Photos] Snapchat-1367191964.jpg
+  Size: 66.3 KB x2 copies  |  Wasted: 66.3 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1367191964.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-1367191964.jpg
+
+[Photos] Snapchat-69032025.jpg
+  Size: 66.2 KB x2 copies  |  Wasted: 66.2 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-69032025.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-69032025.jpg
+
+[Photos] Snapchat-2142625821.jpg
+  Size: 65.0 KB x4 copies  |  Wasted: 194.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-2142625821.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-461048020.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-2142625821.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-461048020.jpg
+
+[Photos] Snapchat-1664353914.jpg
+  Size: 63.2 KB x4 copies  |  Wasted: 189.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1664353914.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-45262215.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-486471179.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-487628477.jpg
+
+[Photos] Snapchat-2110222602.jpg
+  Size: 62.9 KB x2 copies  |  Wasted: 62.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-2110222602.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-670039079.jpg
+
+[Photos] Snapchat-1791037403.jpg
+  Size: 62.9 KB x2 copies  |  Wasted: 62.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1791037403.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1957730599.jpg
+
+[Photos] Snapchat-77891332.jpg
+  Size: 62.5 KB x3 copies  |  Wasted: 124.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-77891332.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-77891332.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\share me\Snapchat-77891332.jpg
+
+[Photos] Snapchat-1378211252.jpg
+  Size: 61.9 KB x2 copies  |  Wasted: 61.9 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1378211252.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1740124521.jpg
+
+[Photos] Snapchat-232383294.jpg
+  Size: 60.3 KB x2 copies  |  Wasted: 60.3 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-232383294.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-321166472.jpg
+
+[Photos] Snapchat-1644999036.jpg
+  Size: 57.7 KB x2 copies  |  Wasted: 57.7 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1644999036.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1942414237.jpg
+
+[Photos] Snapchat-118895133.jpg
+  Size: 56.3 KB x2 copies  |  Wasted: 56.3 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-118895133.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-118895133.jpg
+
+[Photos] Snapchat-306692256.jpg
+  Size: 53.1 KB x4 copies  |  Wasted: 159.4 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-306692256.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-306692256.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\share me\Snapchat-306692256.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\share me\Snapchat-902704731.jpg
+
+[Photos] Snapchat-863320756.jpg
+  Size: 53.0 KB x3 copies  |  Wasted: 106.0 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-863320756.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-863320756.jpg
+  DELETE C:\all\home\gadhi sb ka file\my cute sister\share me\Snapchat-863320756.jpg
+
+[Photos] Snapchat-1177843686.jpg
+  Size: 51.1 KB x2 copies  |  Wasted: 51.1 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1177843686.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-713687763.jpg
+
+[Photos] Snapchat-1961477423.jpg
+  Size: 49.6 KB x2 copies  |  Wasted: 49.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1961477423.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-1961477423.jpg
+
+[Photos] Snapchat-513458354.jpg
+  Size: 49.4 KB x2 copies  |  Wasted: 49.4 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-513458354.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-513458354.jpg
+
+[Photos] Snapchat-1848701980.jpg
+  Size: 48.6 KB x2 copies  |  Wasted: 48.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1848701980.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-1848701980.jpg
+
+[Photos] Snapchat-1292130601.jpg
+  Size: 48.3 KB x3 copies  |  Wasted: 96.5 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1292130601.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1630174324.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1746185747.jpg
+
+[Photos] Snapchat-317061925.jpg
+  Size: 46.6 KB x2 copies  |  Wasted: 46.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-317061925.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-317061925.jpg
+
+[Photos] Snapchat-1612149319.jpg
+  Size: 37.7 KB x2 copies  |  Wasted: 37.7 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1612149319.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1683145514.jpg
+
+[Photos] Snapchat-585644183_resized.jpg
+  Size: 36.3 KB x2 copies  |  Wasted: 36.3 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-585644183_resized.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-585644183_resized.jpg
+
+[Photos] Snapchat-539318168.jpg
+  Size: 36.1 KB x2 copies  |  Wasted: 36.1 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-539318168.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-897909491.jpg
+
+[Photos] Snapchat-1595528814.jpg
+  Size: 36.1 KB x3 copies  |  Wasted: 72.1 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1595528814.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-1595528814.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-762917076.jpg
+
+[Photos] Snapchat-1816275973.jpg
+  Size: 35.0 KB x2 copies  |  Wasted: 35.0 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1816275973.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-1816275973.jpg
+
+[Photos] Snapchat-164973143.jpg
+  Size: 33.2 KB x2 copies  |  Wasted: 33.2 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-164973143.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\com.what\Nazifa\Snapchat-164973143.jpg
+
+[Photos] Snapchat-1336391226.jpg
+  Size: 31.8 KB x4 copies  |  Wasted: 95.4 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1336391226.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1912850239.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-466567452.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-826864625.jpg
+
+[Photos] Snapchat-655455654.jpg
+  Size: 28.5 KB x2 copies  |  Wasted: 28.5 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-655455654.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-854776530.jpg
+
+[Photos] Snapchat-1496983369.jpg
+  Size: 26.2 KB x2 copies  |  Wasted: 26.2 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1496983369.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1617705068.jpg
+
+[Photos] Snapchat-1368268755.jpg
+  Size: 24.6 KB x2 copies  |  Wasted: 24.6 KB
+  KEEP   C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-1368268755.jpg
+  DELETE C:\all\home\gadhi sb ka file\mobile sumsumg\Camera\Snapchat-573177032.jpg

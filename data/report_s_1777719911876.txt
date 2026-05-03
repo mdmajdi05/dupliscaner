@@ -1,0 +1,9 @@
+DUPSCAN REPORT
+Scan path : C:\all\majdi mobile\slide screen
+Generated : 2026-05-02 16:35:12
+============================================================
+
+[Photos] download (5).jpg
+  Size: 13.3 KB x2 copies  |  Wasted: 13.3 KB
+  KEEP   C:\all\majdi mobile\slide screen\download (5).jpg
+  DELETE C:\all\majdi mobile\slide screen\download (7).jpg

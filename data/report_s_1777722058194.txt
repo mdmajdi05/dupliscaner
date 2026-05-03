@@ -1,0 +1,39 @@
+DUPSCAN REPORT
+Scan path : C:\jyo-meerut
+Generated : 2026-05-02 17:10:58
+============================================================
+
+[Photos] IMG_20231020_154720 (1).jpg
+  Size: 225.2 KB x2 copies  |  Wasted: 225.2 KB
+  KEEP   C:\jyo-meerut\IMG_20231020_154720 (1).jpg
+  DELETE C:\jyo-meerut\IMG_20231020_154720.jpg
+
+[Photos] IMG_20231028_204714 (1).jpg
+  Size: 169.8 KB x2 copies  |  Wasted: 169.8 KB
+  KEEP   C:\jyo-meerut\IMG_20231028_204714 (1).jpg
+  DELETE C:\jyo-meerut\IMG_20231028_204714.jpg
+
+[Photos] Screenshot_2021-12-26-16-02-28-095_com.google.android.youtube (1).jpg
+  Size: 96.4 KB x2 copies  |  Wasted: 96.4 KB
+  KEEP   C:\jyo-meerut\Screenshot_2021-12-26-16-02-28-095_com.google.android.youtube (1).jpg
+  DELETE C:\jyo-meerut\Screenshot_2021-12-26-16-02-28-095_com.google.android.youtube.jpg
+
+[Photos] IMG_20210830_234636 (1).jpg
+  Size: 87.8 KB x2 copies  |  Wasted: 87.8 KB
+  KEEP   C:\jyo-meerut\IMG_20210830_234636 (1).jpg
+  DELETE C:\jyo-meerut\IMG_20210830_234636.jpg
+
+[Photos] IMG_20211221_073103 (1).jpg
+  Size: 84.8 KB x2 copies  |  Wasted: 84.8 KB
+  KEEP   C:\jyo-meerut\IMG_20211221_073103 (1).jpg
+  DELETE C:\jyo-meerut\IMG_20211221_073103.jpg
+
+[Photos] Screenshot_2023-10-10-16-02-16-229_com.snapchat.android (1).jpg
+  Size: 79.1 KB x2 copies  |  Wasted: 79.1 KB
+  KEEP   C:\jyo-meerut\Screenshot_2023-10-10-16-02-16-229_com.snapchat.android (1).jpg
+  DELETE C:\jyo-meerut\Screenshot_2023-10-10-16-02-16-229_com.snapchat.android.jpg
+
+[Photos] IMG_20210830_234947 (1).jpg
+  Size: 69.0 KB x2 copies  |  Wasted: 69.0 KB
+  KEEP   C:\jyo-meerut\IMG_20210830_234947 (1).jpg
+  DELETE C:\jyo-meerut\IMG_20210830_234947.jpg

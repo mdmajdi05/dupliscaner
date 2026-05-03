@@ -1,0 +1,79 @@
+DUPSCAN REPORT
+Scan path : C:\all\social media
+Generated : 2026-05-02 17:03:58
+============================================================
+
+[Audio] Tu_Pyar_Hai_Kisi_Aur_Ka.mp3
+  Size: 6.3 MB x2 copies  |  Wasted: 6.3 MB
+  KEEP   C:\all\social media\ShareMe\Tu_Pyar_Hai_Kisi_Aur_Ka.mp3
+  DELETE C:\all\social media\ShareMe\Tu_Pyar_Hai_Kisi_Aur_Ka_1.mp3
+
+[Audio] Naat_By_Veena_Malik___Meetha_Meetha_Hai_Mere_Muhammad_Ka_Naam___Aplus_Entertainment___AP1(128k).m4a
+  Size: 5.4 MB x2 copies  |  Wasted: 5.4 MB
+  KEEP   C:\all\social media\ShareMe\Naat_By_Veena_Malik___Meetha_Meetha_Hai_Mere_Muhammad_Ka_Naam___Aplus_Entertainment___AP1(128k).m4a
+  DELETE C:\all\social media\ShareMe\Naat_By_Veena_Malik___Meetha_Meetha_Hai_Mere_Muhammad_Ka_Naam___Aplus_Entertainment___AP1(128k)_1.m4a
+
+[Audio] Jane_Meri_Janeman_Bachpan_Ka_Pyar_Mera_Bhul_Nahi_Jana_Re___Jane_Meri_Jane_Jana_Meri_Song_Remix(128k).m4a
+  Size: 4.7 MB x2 copies  |  Wasted: 4.7 MB
+  KEEP   C:\all\social media\ShareMe\Jane_Meri_Janeman_Bachpan_Ka_Pyar_Mera_Bhul_Nahi_Jana_Re___Jane_Meri_Jane_Jana_Meri_Song_Remix(128k).m4a
+  DELETE C:\all\social media\ShareMe\Jane_Meri_Janeman_Bachpan_Ka_Pyar_Mera_Bhul_Nahi_Jana_Re___Jane_Meri_Jane_Jana_Meri_Song_Remix(128k)_1.m4a
+
+[Audio] Teri_har_ek_muskan(128k).m4a
+  Size: 4.4 MB x2 copies  |  Wasted: 4.4 MB
+  KEEP   C:\all\social media\ShareMe\Teri_har_ek_muskan(128k).m4a
+  DELETE C:\all\social media\ShareMe\Teri_har_ek_muskan(128k)_1.m4a
+
+[Audio] New_Hajj_Kalam___Mujhe_Bhi_Madine_Bula_Mere_Mola___Umme_Ammara_Qadriya___Hajj_Naats___Studio5(128k).mp3
+  Size: 4.0 MB x2 copies  |  Wasted: 4.0 MB
+  KEEP   C:\all\social media\ShareMe\New_Hajj_Kalam___Mujhe_Bhi_Madine_Bula_Mere_Mola___Umme_Ammara_Qadriya___Hajj_Naats___Studio5(128k).mp3
+  DELETE C:\all\social media\ShareMe\New_Hajj_Kalam___Mujhe_Bhi_Madine_Bula_Mere_Mola___Umme_Ammara_Qadriya___Hajj_Naats___Studio5(128k)_1.mp3
+
+[Audio] Hum_Teri_Mohabbat_Mein___Romantic_Killer_Love_Story___Love_Story_Hindi_Song___Kumar_Sanu___Sad_Songs(128k).m4a
+  Size: 3.8 MB x2 copies  |  Wasted: 3.8 MB
+  KEEP   C:\all\social media\ShareMe\Hum_Teri_Mohabbat_Mein___Romantic_Killer_Love_Story___Love_Story_Hindi_Song___Kumar_Sanu___Sad_Songs(128k).m4a
+  DELETE C:\all\social media\ShareMe\Hum_Teri_Mohabbat_Mein___Romantic_Killer_Love_Story___Love_Story_Hindi_Song___Kumar_Sanu___Sad_Songs(128k)_1.m4a
+
+[Audio] Dehleez_Pe_Mere_Dil_Ki_Full_Song_Lyrics_in_Hindi_-_Badlapur___Varun%2C_Yami_Gautam___Atif_Aslam(128k).m4a
+  Size: 3.5 MB x2 copies  |  Wasted: 3.5 MB
+  KEEP   C:\all\social media\ShareMe\Dehleez_Pe_Mere_Dil_Ki_Full_Song_Lyrics_in_Hindi_-_Badlapur___Varun%2C_Yami_Gautam___Atif_Aslam(128k).m4a
+  DELETE C:\all\social media\ShareMe\Dehleez_Pe_Mere_Dil_Ki_Full_Song_Lyrics_in_Hindi_-_Badlapur___Varun%2C_Yami_Gautam___Atif_Aslam(128k)_1.m4a
+
+[Audio] Meri_Jholi_ko_bhar_day(128k).m4a
+  Size: 2.9 MB x2 copies  |  Wasted: 2.9 MB
+  KEEP   C:\all\social media\ShareMe\Meri_Jholi_ko_bhar_day(128k).m4a
+  DELETE C:\all\social media\ShareMe\Meri_Jholi_ko_bhar_day(128k)_1.m4a
+
+[Audio] kaat_ke_kareja_dikha_denge,_Kat_Ke_Kaleja_Dikha_Denge,_mummy_se_tumko_mila_denge,_Pagla_Pagli_Song(128k).m4a
+  Size: 2.9 MB x2 copies  |  Wasted: 2.9 MB
+  KEEP   C:\all\social media\ShareMe\kaat_ke_kareja_dikha_denge,_Kat_Ke_Kaleja_Dikha_Denge,_mummy_se_tumko_mila_denge,_Pagla_Pagli_Song(128k).m4a
+  DELETE C:\all\social media\ShareMe\kaat_ke_kareja_dikha_denge,_Kat_Ke_Kaleja_Dikha_Denge,_mummy_se_tumko_mila_denge,_Pagla_Pagli_Song(128k)_1.m4a
+
+[Audio] Duaon_Me_Meri___Lyrical_Video___Ayisha_Abdul_Basith(48k).mp3
+  Size: 2.3 MB x2 copies  |  Wasted: 2.3 MB
+  KEEP   C:\all\social media\ShareMe\Duaon_Me_Meri___Lyrical_Video___Ayisha_Abdul_Basith(48k).mp3
+  DELETE C:\all\social media\ShareMe\Duaon_Me_Meri___Lyrical_Video___Ayisha_Abdul_Basith(48k)_1.mp3
+
+[Audio] Bharat_Ka_Veer_Putra_Maharana_Pratap_and_Ajabde___Vivah_Song___MS_Infotainment(48k).mp3
+  Size: 2.0 MB x2 copies  |  Wasted: 2.0 MB
+  KEEP   C:\all\social media\ShareMe\Bharat_Ka_Veer_Putra_Maharana_Pratap_and_Ajabde___Vivah_Song___MS_Infotainment(48k).mp3
+  DELETE C:\all\social media\ShareMe\Bharat_Ka_Veer_Putra_Maharana_Pratap_and_Ajabde___Vivah_Song___MS_Infotainment(48k)_1.mp3
+
+[Audio] Hindi_song____Tara_jaisa_Yaar_kaha__[Baal_veer](48k).mp3
+  Size: 1.4 MB x2 copies  |  Wasted: 1.4 MB
+  KEEP   C:\all\social media\ShareMe\Hindi_song____Tara_jaisa_Yaar_kaha__[Baal_veer](48k).mp3
+  DELETE C:\all\social media\ShareMe\Hindi_song____Tara_jaisa_Yaar_kaha__[Baal_veer](48k)_1.mp3
+
+[Audio] Teri_Gali_Se_Ghar_chor_Ke_dusre_Mohalle_Mein_Ghar_le_liya_Subah_Ki_Azan_sunke_video_song_2020_ka_new(48k).mp3
+  Size: 1.3 MB x2 copies  |  Wasted: 1.3 MB
+  KEEP   C:\all\social media\ShareMe\Teri_Gali_Se_Ghar_chor_Ke_dusre_Mohalle_Mein_Ghar_le_liya_Subah_Ki_Azan_sunke_video_song_2020_ka_new(48k).mp3
+  DELETE C:\all\social media\ShareMe\Teri_Gali_Se_Ghar_chor_Ke_dusre_Mohalle_Mein_Ghar_le_liya_Subah_Ki_Azan_sunke_video_song_2020_ka_new(48k)_1.mp3
+
+[Audio] Oh_oh_Jane_Jana_song_in_korean_version(48k).mp3
+  Size: 1.3 MB x2 copies  |  Wasted: 1.3 MB
+  KEEP   C:\all\social media\ShareMe\Oh_oh_Jane_Jana_song_in_korean_version(48k).mp3
+  DELETE C:\all\social media\ShareMe\Oh_oh_Jane_Jana_song_in_korean_version(48k)_1.mp3
+
+[Audio] Pyaar_Lafzon_Mein_Kahan_Episode_54___Ye_dil_tujh_ko_kyu_itna_chahy..(48k).mp3
+  Size: 1.3 MB x2 copies  |  Wasted: 1.3 MB
+  KEEP   C:\all\social media\ShareMe\Pyaar_Lafzon_Mein_Kahan_Episode_54___Ye_dil_tujh_ko_kyu_itna_chahy..(48k).mp3
+  DELETE C:\all\social media\ShareMe\Pyaar_Lafzon_Mein_Kahan_Episode_54___Ye_dil_tujh_ko_kyu_itna_chahy..(48k)_1.mp3

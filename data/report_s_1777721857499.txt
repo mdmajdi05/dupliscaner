@@ -1,0 +1,4 @@
+DUPSCAN REPORT
+Scan path : C:\all\study html srnst
+Generated : 2026-05-02 17:07:37
+============================================================

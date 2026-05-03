@@ -1,0 +1,54 @@
+DUPSCAN REPORT
+Scan path : C:\all\majdi mobile\note 7 pro for some\Jio cloud
+Generated : 2026-05-02 16:26:21
+============================================================
+
+[Photos] IMG-20190930-WA0033.jpg
+  Size: 153.3 KB x2 copies  |  Wasted: 153.3 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190930-WA0033.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191011-WA0014.jpg
+
+[Photos] IMG-20191011-WA0030.jpg
+  Size: 152.3 KB x2 copies  |  Wasted: 152.3 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191011-WA0030.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191011-WA0036.jpg
+
+[Photos] IMG-20190930-WA0063.jpg
+  Size: 148.7 KB x2 copies  |  Wasted: 148.7 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190930-WA0063.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191011-WA0015.jpg
+
+[Photos] IMG-20200108-WA0011.jpg
+  Size: 109.2 KB x2 copies  |  Wasted: 109.2 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200108-WA0011.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200108-WA0021.jpg
+
+[Photos] IMG-20190705-WA0037.jpg
+  Size: 98.5 KB x2 copies  |  Wasted: 98.5 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190705-WA0037.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190705-WA0038.jpg
+
+[Photos] IMG-20190705-WA0033.jpg
+  Size: 81.4 KB x2 copies  |  Wasted: 81.4 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190705-WA0033.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190707-WA0001.jpg
+
+[Photos] IMG-20191017-WA0013.jpg
+  Size: 67.0 KB x2 copies  |  Wasted: 67.0 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191017-WA0013.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191101-WA0022.jpg
+
+[Photos] IMG-20200321-WA0002.jpg
+  Size: 63.3 KB x2 copies  |  Wasted: 63.3 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200321-WA0002.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200414-WA0012.jpg
+
+[Photos] IMG-20190830-WA0004.jpg
+  Size: 60.9 KB x2 copies  |  Wasted: 60.9 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20190830-WA0004.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20191210-WA0006.jpg
+
+[Photos] IMG-20200229-WA0006.jpg
+  Size: 37.9 KB x2 copies  |  Wasted: 37.9 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200229-WA0006.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Jio cloud\WhatsApp_Statuses\Temp Photo\IMG-20200229-WA0007.jpg

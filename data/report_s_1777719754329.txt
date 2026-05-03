@@ -1,0 +1,4 @@
+DUPSCAN REPORT
+Scan path : C:\all\majdi mobile\nsp 2022
+Generated : 2026-05-02 16:32:34
+============================================================

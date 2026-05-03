@@ -1,0 +1,9 @@
+DUPSCAN REPORT
+Scan path : C:\Users\md majdi\.vscode-shared
+Generated : 2026-05-02 17:43:31
+============================================================
+
+[Others] state.vscdb
+  Size: 36.0 KB x2 copies  |  Wasted: 36.0 KB
+  KEEP   C:\Users\md majdi\.vscode-shared\sharedStorage\state.vscdb
+  DELETE C:\Users\md majdi\.vscode-shared\sharedStorage\state.vscdb.backup

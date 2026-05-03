@@ -1,0 +1,24 @@
+DUPSCAN REPORT
+Scan path : C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon
+Generated : 2026-05-02 16:30:57
+============================================================
+
+[Photos] IMG-20190927-WA0039.jpg
+  Size: 168.4 KB x2 copies  |  Wasted: 168.4 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20190927-WA0039.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20201216-WA0028.jpg
+
+[Photos] IMG-20190925-WA0049.jpg
+  Size: 52.4 KB x2 copies  |  Wasted: 52.4 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20190925-WA0049.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20201130-WA0018.jpg
+
+[Photos] IMG-20190925-WA0051.jpg
+  Size: 47.5 KB x2 copies  |  Wasted: 47.5 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20190925-WA0051.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20201216-WA0025.jpg
+
+[Photos] IMG-20201216-WA0027.jpg
+  Size: 18.4 KB x2 copies  |  Wasted: 18.4 KB
+  KEEP   C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\IMG-20201216-WA0027.jpg
+  DELETE C:\all\majdi mobile\note 7 pro for some\Majdi whatsapp icon\me.jpg

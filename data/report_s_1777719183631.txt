@@ -1,0 +1,4 @@
+DUPSCAN REPORT
+Scan path : C:\all\html srn rcrd
+Generated : 2026-05-02 16:23:03
+============================================================
