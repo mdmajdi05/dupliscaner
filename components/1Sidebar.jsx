@@ -1,5 +1,5 @@
 'use client';
-import { Trash2, Clock, HardDrive, Radio, ChevronRight, FolderSearch } from 'lucide-react';
+import { Trash2, Clock, HardDrive, Radio, ChevronRight } from 'lucide-react';
 
 function fmtSize(b) {
   if (!b) return '0 B';
@@ -18,7 +18,7 @@ const CAT_COLORS = {
   Documents:'#3b82f6', Archives:'#f97316', Code:'#10b981', Others:'#6b7280',
 };
 
-export default function Sidebar({ history, viewId, currentScanId, status, onSelect, onDelete, onViewLive, onOpenFM, isFMActive }) {
+export default function Sidebar({ history, viewId, currentScanId, status, onSelect, onDelete, onViewLive }) {
   const isScanning = status === 'scanning';
 
   return (
@@ -34,38 +34,21 @@ export default function Sidebar({ history, viewId, currentScanId, status, onSele
         </div>
       </div>
 
-      {/* ── File Manager with Gallery ── NEW */}
-      <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom:'1px solid var(--border)' }}>
-        <button
-          onClick={onOpenFM}
-          className="si-item w-full text-left flex items-center gap-2 text-xs"
-          style={{
-            background: isFMActive ? 'var(--s3)' : 'transparent',
-            borderLeft: isFMActive ? '2px solid var(--neon)' : '2px solid transparent',
-          }}
-        >
-          <FolderSearch size={12} style={{ color: isFMActive ? 'var(--neon)' : 'var(--muted)' }} />
-          <span style={{ color: isFMActive ? 'var(--neon)' : 'var(--muted)', fontWeight: 600 }}>
-            File manager with gallery
-          </span>
-        </button>
-      </div>
-
       {/* live scan button */}
       <div className="px-3 py-3 flex-shrink-0" style={{ borderBottom:'1px solid var(--border)' }}>
         <button
           onClick={onViewLive}
           className="si-item w-full text-left flex items-center gap-2 text-xs"
-          style={{ background: viewId === null && !isFMActive ? 'var(--s3)' : 'transparent',
-                   borderLeft: viewId === null && !isFMActive ? '2px solid var(--neon)' : '2px solid transparent' }}
+          style={{ background: viewId === null ? 'var(--s3)' : 'transparent',
+                   borderLeft: viewId === null ? '2px solid var(--neon)' : '2px solid transparent' }}
         >
           {isScanning ? (
             <span className="anim-pulse" style={{ color:'var(--neon)' }}><Radio size={12} /></span>
           ) : (
-            <Radio size={12} style={{ color: viewId===null && !isFMActive ? 'var(--neon)' : 'var(--muted)' }} />
+            <Radio size={12} style={{ color: viewId===null ? 'var(--neon)' : 'var(--muted)' }} />
           )}
-          <span style={{ color: viewId===null && !isFMActive ? 'var(--neon)' : 'var(--muted)' }}>
-            {isScanning ? 'Live Scan' : 'DupScan'}
+          <span style={{ color: viewId===null ? 'var(--neon)' : 'var(--muted)' }}>
+            {isScanning ? 'Live Scan' : 'Current Scan'}
           </span>
           {isScanning && (
             <span className="ml-auto text-xs anim-pulse" style={{ color:'var(--neon)' }}>●</span>
@@ -86,7 +69,7 @@ export default function Sidebar({ history, viewId, currentScanId, status, onSele
           </div>
         )}
         {history.map(scan => {
-          const active = viewId === scan.id && !isFMActive;
+          const active = viewId === scan.id;
           return (
             <div key={scan.id}
               className={`si-item ${active ? 'active' : ''} group`}
@@ -94,15 +77,18 @@ export default function Sidebar({ history, viewId, currentScanId, status, onSele
             >
               <div className="flex items-start justify-between gap-1">
                 <div className="flex-1 min-w-0">
+                  {/* path */}
                   <div className="text-xs font-medium truncate" style={{ color: active ? 'var(--text)' : 'var(--muted)', maxWidth:'130px' }}>
                     {scan.path?.split(/[/\\]/).pop() || scan.path || 'Unknown'}
                   </div>
+                  {/* date */}
                   <div className="flex items-center gap-1 mt-0.5">
                     <Clock size={9} style={{ color:'var(--dim)', flexShrink:0 }} />
                     <span className="text-xs mono" style={{ color:'var(--dim)', fontSize:'10px' }}>
                       {fmtDate(scan.startedAt)}
                     </span>
                   </div>
+                  {/* stats */}
                   {scan.stats && (
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs font-bold" style={{ color: active ? 'var(--neon)' : 'var(--muted)' }}>
@@ -116,6 +102,7 @@ export default function Sidebar({ history, viewId, currentScanId, status, onSele
                     </div>
                   )}
                 </div>
+                {/* delete btn */}
                 <button
                   className="btn-danger rounded p-0.5 opacity-0 group-hover:opacity-100 flex-shrink-0"
                   style={{ fontSize:'10px' }}

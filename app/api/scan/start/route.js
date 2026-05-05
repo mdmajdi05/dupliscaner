@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
+import os from 'os';
 import { S, resetState, push } from '../../../../lib/state.js';
 import { addScan } from '../../../../lib/history.js';
 
@@ -18,7 +19,10 @@ export async function POST(req) {
     S.scanId = id; S.scanPath = scanPath; S.startedAt = new Date().toISOString();
     S.status = 'scanning'; S.mode = mode || 'scan'; S.targetFile = targetFile || '';
 
-    const reportPath = path.join(process.cwd(), 'data', `report_${id}.txt`);
+    // Use AppData path for reports
+    const appDataDir = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+    const reportsDir = path.join(appDataDir, 'DupScan', 'reports');
+    const reportPath = path.join(reportsDir, `report_${id}.txt`);
     S.reportPath = reportPath;
 
     const py = process.platform === 'win32' ? 'python' : 'python3';

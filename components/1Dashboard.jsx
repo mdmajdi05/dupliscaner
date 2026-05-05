@@ -6,7 +6,6 @@ import ResultsView from './ResultsView';
 import GalleryView from './GalleryView';
 import PreviewModal from './PreviewModal';
 import StatsBar from './StatsBar';
-import FileManagerDashboard from './FileManagerDashboardOptimized';
 
 export default function Dashboard() {
   const [status, setStatus]     = useState('idle');
@@ -19,11 +18,11 @@ export default function Dashboard() {
   const [viewId, setViewId]     = useState(null);
   const [viewScan, setViewScan] = useState(null);
 
-  // ── NEW: File Manager toggle ──
-  const [showFM, setShowFM] = useState(false);
-
+  // fileStatus: { [path]: 'keep'|'review'|'need'|'deleted' }
   const [fileStatus, setFileStatus] = useState({});
+  // keepMap: { [dupGroupId]: number } - which index is the "KEEP" file
   const [keepMap, setKeepMap]       = useState({});
+
   const [filter, setFilter]     = useState({ cat:'All', folder:'', search:'', showStatus:'all' });
   const [preview, setPreview]   = useState(null);
   const [mainTab, setMainTab]   = useState('list');
@@ -88,7 +87,6 @@ export default function Dashboard() {
   const stopScan = () => { fetch('/api/scan/stop',{method:'POST'}); setStatus('stopped'); };
 
   const selectHistory = async (id) => {
-    setShowFM(false);
     if (!id) { setViewId(null); setViewScan(null); setFileStatus({}); setKeepMap({}); return; }
     setViewId(id);
     const r = await fetch(`/api/history/${id}`);
@@ -110,6 +108,7 @@ export default function Dashboard() {
   const persist = useCallback(async (fs, km) => {
     const sid = viewId || scanId;
     if (!sid) return;
+    // debounce
     clearTimeout(persistRef.current);
     persistRef.current = setTimeout(async () => {
       await fetch(`/api/history/${sid}`,{
@@ -190,40 +189,28 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden" style={{background:'var(--bg)'}}>
       {sidebarOpen && (
-        <Sidebar
-          history={history} viewId={viewId} status={status}
+        <Sidebar history={history} viewId={viewId} status={status}
           onSelect={selectHistory} onDelete={deleteHistory}
-          onViewLive={() => { selectHistory(null); setShowFM(false); }}
-          onOpenFM={() => setShowFM(true)}
-          isFMActive={showFM}
-        />
+          onViewLive={()=>selectHistory(null)} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {showFM ? (
-          /* ── File Manager + Gallery ── */
-          <FileManagerDashboard />
-        ) : (
-          /* ── Original DupScan UI ── */
-          <>
-            <TopBar
-              status={displayStatus} progress={progress}
-              scanPath={viewScan?.path||scanPath}
-              onStart={startScan} onStop={stopScan} onDownload={downloadReport}
-              dups={dups} isHistory={!!viewId} viewScan={viewScan}
-              filter={filter} onFilterChange={setFilter}
-              sidebarOpen={sidebarOpen} onToggleSidebar={()=>setSidebarOpen(!sidebarOpen)}
-              mainTab={mainTab} onMainTab={setMainTab}
-            />
-            <StatsBar stats={stats} />
-            <div className="flex-1 overflow-hidden">
-              {mainTab==='list'
-                ? <ResultsView {...shared} />
-                : <GalleryView {...shared} />
-              }
-            </div>
-          </>
-        )}
+        <TopBar
+          status={displayStatus} progress={progress}
+          scanPath={viewScan?.path||scanPath}
+          onStart={startScan} onStop={stopScan} onDownload={downloadReport}
+          dups={dups} isHistory={!!viewId} viewScan={viewScan}
+          filter={filter} onFilterChange={setFilter}
+          sidebarOpen={sidebarOpen} onToggleSidebar={()=>setSidebarOpen(!sidebarOpen)}
+          mainTab={mainTab} onMainTab={setMainTab}
+        />
+        <StatsBar stats={stats} />
+        <div className="flex-1 overflow-hidden">
+          {mainTab==='list'
+            ? <ResultsView {...shared} />
+            : <GalleryView {...shared} />
+          }
+        </div>
       </div>
 
       {preview && (

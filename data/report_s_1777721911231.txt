@@ -1,4 +1,0 @@
-DUPSCAN REPORT
-Scan path : C:\all\unknown-documents
-Generated : 2026-05-02 17:08:31
-============================================================

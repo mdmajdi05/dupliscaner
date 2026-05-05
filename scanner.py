@@ -178,8 +178,19 @@ def scan(root, skip_hidden, report_path, single_file=None):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--path", default=os.path.expanduser("~"))
-    p.add_argument("--report", default="data/report.txt")
+    p.add_argument("--report", default="")
     p.add_argument("--hidden", action="store_true")
     p.add_argument("--file", default="", help="Find duplicates of a specific file")
     args = p.parse_args()
-    scan(args.path, not args.hidden, args.report, args.file or None)
+    
+    # Use AppData path if report not provided
+    report_path = args.report
+    if not report_path:
+        appdata = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
+        reports_dir = os.path.join(appdata, 'DupScan', 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        report_path = os.path.join(reports_dir, f"report_{int(datetime.now().timestamp()*1000)}.txt")
+    else:
+        os.makedirs(os.path.dirname(report_path), exist_ok=True)
+    
+    scan(args.path, not args.hidden, report_path, args.file or None)

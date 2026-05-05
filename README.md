@@ -80,10 +80,17 @@ dupscan/
 │   ├── StatsBar.jsx
 │   ├── ResultsView.jsx
 │   └── PreviewModal.jsx
-├── lib/
-│   ├── state.js        ← Global scan state
-│   └── history.js      ← Read/write history.json
-└── data/               ← Auto-created: history.json + reports
+└── lib/
+    ├── state.js        ← Global scan state
+    └── history.js      ← Read/write history.json
+
+## Data Storage
+All data is stored in Windows AppData (production-style):
+- **Windows AppData Path**: `%LOCALAPPDATA%/DupScan/`
+- **History**: `%LOCALAPPDATA%/DupScan/history.json`
+- **Reports**: `%LOCALAPPDATA%/DupScan/reports/`
+- **No files** are stored in the project directory
+- **Auto-cleanup**: Keeps only the last 50 scan reports
 ```
 
 ---
@@ -92,7 +99,8 @@ dupscan/
 - The **first file** in each group is the **KEEP** (oldest/original)
 - Use **Find File Dups** mode to locate all copies of one specific file
 - History is saved automatically when a scan completes
-- Report .txt file is also saved in the `data/` folder
+- Reports are automatically saved to your AppData folder
+- Last 50 reports are kept; older ones are auto-deleted
 
 ---
 

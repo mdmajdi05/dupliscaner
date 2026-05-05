@@ -1,4 +1,0 @@
-DUPSCAN REPORT
-Scan path : C:\all\majdi mobile|
-Generated : 2026-05-02 16:48:45
-============================================================
