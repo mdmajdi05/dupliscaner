@@ -1,2 +1,2 @@
-import Dashboard from '../components/Dashboard';
+import Dashboard from '../shared/components/Dashboard';
 export default function Page() { return <Dashboard />; }

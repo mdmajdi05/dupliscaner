@@ -1,8 +1,9 @@
 'use client';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Crown, ArrowLeftRight, Trash2, ZoomIn, ZoomOut, Eye, Image,
          Video, Music, FileText, File, Shield, Bookmark, CheckCircle2 } from 'lucide-react';
 import StatusPill from './StatusPill';
+import { getLazyDups } from '../../../lib/scan-controller';
 
 function fmtSize(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return`${(b/Math.pow(1024,i)).toFixed(1)} ${u[i]}`;}
 
@@ -40,9 +41,10 @@ function ThumbnailCard({ file, fileIdx, groupId, isKeep, status, tileSize, onSet
 
   return (
     <div
-      className="relative rounded-lg overflow-hidden flex-shrink-0 transition-all cursor-pointer"
+      className="relative rounded-lg overflow-hidden transition-all cursor-pointer"
       style={{
-        width: sz, flexShrink:0,
+        width: sz,
+        height: tileSize !== 'sm' ? 'auto' : sz,
         border: isKeep ? '2px solid var(--neon)' : `2px solid ${hovered?'var(--border2)':'var(--border)'}`,
         background: 'var(--s2)',
         opacity: isDeleted ? 0.4 : 1,
@@ -120,9 +122,9 @@ function ThumbnailCard({ file, fileIdx, groupId, isKeep, status, tileSize, onSet
       {/* label */}
       {tileSize !== 'sm' && (
         <div className="px-1.5 py-1.5">
-          <div className="font-semibold truncate" style={{fontSize:labelSz,color:'var(--text)'}}>{file.name}</div>
+          <div className="font-semibold truncate" style={{fontSize:labelSz,color:'var(--text)',width:sz-12}}>{file.name}</div>
           {tileSize !== 'md' && (
-            <div className="mono truncate" style={{fontSize:9,color:'var(--dim)'}}>{file.folder}</div>
+            <div className="mono truncate" style={{fontSize:9,color:'var(--dim)',width:sz-12}}>{file.folder}</div>
           )}
           <div className="size-badge mt-0.5 inline-block">{file.sizeFmt||fmtSize(file.size)}</div>
         </div>
@@ -135,11 +137,14 @@ function DupGroupGallery({ dup, tileSize, fileStatus, keepMap, onSetStatus, onCl
   const [open, setOpen] = useState(true);
   const keepIdx = keepMap[dup.id] ?? 0;
   const catColor = {Photos:'#f59e0b',Videos:'#ef4444',Audio:'#a855f7',Documents:'#3b82f6',Archives:'#f97316',Code:'#10b981',Others:'#6b7280'}[dup.cat]||'#6b7280';
+  
+  const sz = {sm:80,md:130,lg:180,xl:230}[tileSize]||130;
+  const cols = Math.max(2, Math.floor((window?.innerWidth || 1000) / (sz + 24)));
 
   return (
-    <div className="mb-5">
+    <div className="mb-6">
       {/* group header */}
-      <div className="flex items-center gap-2 mb-2 px-1 cursor-pointer" onClick={()=>setOpen(!open)}>
+      <div className="flex items-center gap-2 mb-3 px-2 cursor-pointer hover:bg-gray-800/50 py-2 rounded transition-colors" onClick={()=>setOpen(!open)}>
         <span style={{color:'var(--dim)',fontSize:12}}>{open?'▼':'▶'}</span>
         <span className="text-sm font-semibold truncate" style={{color:'var(--text)',maxWidth:260}}>{dup.files[0]?.name}</span>
         <span className="catbadge" style={{background:`${catColor}20`,color:catColor}}>{dup.cat}</span>
@@ -148,7 +153,14 @@ function DupGroupGallery({ dup, tileSize, fileStatus, keepMap, onSetStatus, onCl
       </div>
 
       {open && (
-        <div className="flex flex-wrap gap-2">
+        <div 
+          className="gap-3 px-2"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(auto-fill, minmax(${sz}px, 1fr))`,
+            gridAutoRows: 'max-content',
+          }}
+        >
           {dup.files.map((file,idx)=>(
             <ThumbnailCard key={file.path} file={file} fileIdx={idx} groupId={dup.id}
               isKeep={idx===keepIdx} status={fileStatus} tileSize={tileSize}
@@ -159,7 +171,7 @@ function DupGroupGallery({ dup, tileSize, fileStatus, keepMap, onSetStatus, onCl
         </div>
       )}
 
-      <div style={{borderBottom:'1px solid var(--border)',marginTop:12}}/>
+      <div style={{borderBottom:'1px solid var(--border)',marginTop:16}}/>
     </div>
   );
 }
@@ -173,6 +185,9 @@ export default function GalleryView({
 }) {
   const [tileSize, setTileSize] = useState('md');
   const [showType, setShowType] = useState('all'); // all|originals|duplicates|media
+  const [batchNumber, setBatchNumber] = useState(0);
+  const scrollContainerRef = useRef(null);
+  const BATCH_SIZE = 100;
 
   const filtered = useMemo(()=>{
     let list = dups;
@@ -189,6 +204,25 @@ export default function GalleryView({
     }
     return list;
   },[dups,filter,fileStatus,showType]);
+
+  // Reset batch when filter changes
+  useEffect(() => {
+    setBatchNumber(0);
+  }, [filter, showType]);
+
+  // Lazy load batches
+  const lazyData = useMemo(() => {
+    return getLazyDups(filtered, BATCH_SIZE, batchNumber);
+  }, [filtered, batchNumber]);
+
+  const handleScroll = (e) => {
+    const container = e.target;
+    const scrollPercentage = (container.scrollTop + container.clientHeight) / container.scrollHeight;
+    
+    if (scrollPercentage > 0.8 && lazyData.hasMore) {
+      setBatchNumber(prev => prev + 1);
+    }
+  };
 
   if (status==='idle') return (
     <div className="h-full flex items-center justify-center flex-col gap-3">
@@ -254,14 +288,34 @@ export default function GalleryView({
         {status==='scanning'&&<span className="text-xs font-bold anim-pulse" style={{color:'var(--neon)'}}>● LIVE</span>}
       </div>
 
-      {/* gallery grid */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {filtered.map(d=>(
+      {/* gallery grid with lazy loading */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4"
+        onScroll={handleScroll}
+      >
+        {lazyData.items.map(d=>(
           <DupGroupGallery key={d.id} dup={d} tileSize={tileSize} {...rest}/>
         ))}
-        {filtered.length===0&&dups.length>0&&(
+        
+        {lazyData.items.length === 0 && filtered.length > 0 && (
           <div className="flex items-center justify-center h-40 text-sm" style={{color:'var(--muted)'}}>
             No results match the current filter.
+          </div>
+        )}
+
+        {filtered.length === 0 && dups.length > 0 && (
+          <div className="flex items-center justify-center h-40 text-sm" style={{color:'var(--muted)'}}>
+            No results match the current filter.
+          </div>
+        )}
+
+        {/* Loading indicator for lazy loading */}
+        {status === 'scanning' && lazyData.hasMore && (
+          <div className="flex items-center justify-center py-4">
+            <div className="text-xs" style={{color:'var(--dim)'}}>
+              Scroll to load more... ({lazyData.items.length} of {filtered.length})
+            </div>
           </div>
         )}
       </div>

@@ -1,11 +1,6 @@
 'use client';
 import { Layers, CopyX, HardDrive, Shield, Eye, Bookmark, Trash2 } from 'lucide-react';
-
-function fmtSize(b) {
-  if(!b) return '0 B';
-  const u=['B','KB','MB','GB']; const i=Math.floor(Math.log(b)/Math.log(1024));
-  return `${(b/Math.pow(1024,i)).toFixed(1)} ${u[i]}`;
-}
+import { fmtSize } from '../../../shared/utils/formatters';
 
 const ITEMS = [
   {key:'sets',    icon:<Layers size={12}/>,    label:'Groups',   color:'var(--neon)'},

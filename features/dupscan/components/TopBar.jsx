@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Play, Square, Download, Monitor, FolderSearch, FileScan, PanelLeft,
          Search, SlidersHorizontal, X, CheckCircle, AlertCircle, Loader2,
-         List, LayoutGrid } from 'lucide-react';
+         List, LayoutGrid, Settings } from 'lucide-react';
+import SettingsModal from '../../../shared/components/SettingsModal';
 
 const CATS = ['All','Photos','Videos','Audio','Documents','Archives','Code','Others'];
 const STATUS_FILTERS = [
@@ -24,6 +25,7 @@ export default function TopBar({
   const [targetFile, setTargetFile] = useState('');
   const [hidden, setHidden]     = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const scanning = status === 'scanning';
   const pct = progress.total > 0 ? Math.round((progress.done/progress.total)*100) : 0;
@@ -131,6 +133,12 @@ export default function TopBar({
           </button>
         </div>
 
+        <button onClick={()=>setShowSettings(true)}
+          className="btn-ghost rounded p-1.5 flex-shrink-0"
+          title="Settings">
+          <Settings size={15} style={{color:'var(--muted)'}}/>
+        </button>
+
         <button onClick={()=>setShowFilters(!showFilters)}
           className="btn-ghost rounded p-1.5 flex-shrink-0"
           style={{color:showFilters?'var(--neon)':'var(--muted)',borderColor:showFilters?'var(--neon2)':'var(--border)'}}>
@@ -216,6 +224,8 @@ export default function TopBar({
           </div>
         </div>
       )}
+      
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }
