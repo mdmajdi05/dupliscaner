@@ -51,9 +51,13 @@ export function FileGridItem({
     <div
       className="relative rounded-lg overflow-hidden cursor-pointer group transition-all"
       style={{
+        width: '100%',
+        height: '100%',
         border: isSel ? '2px solid var(--neon)' : '2px solid var(--border)',
         background: 'var(--s2)',
         boxShadow: isSel ? '0 0 10px rgba(0,230,118,.2)' : 'none',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       onClick={(e) => {
         if (e.ctrlKey || e.metaKey || e.shiftKey) onSelect(file.path, 'toggle');
@@ -74,7 +78,7 @@ export function FileGridItem({
         </div>
       </div>
 
-      <div style={{ width: '100%', aspectRatio: '1', background: 'var(--s3)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: '100%', flex: '1 1 auto', minHeight: 0, background: 'var(--s3)', position: 'relative', overflow: 'hidden' }}>
         {isImg ? (
           <img
             src={`/api/preview?p=${encodeURIComponent(file.path)}`}
@@ -110,7 +114,7 @@ export function FileGridItem({
       </div>
 
       {sz > 70 && (
-        <div className="px-1.5 py-1.5">
+        <div className="px-1.5 py-1.5 flex-shrink-0">
           <div className="font-semibold truncate" style={{ fontSize: Math.max(10, Math.min(13, sz / 12)), color: 'var(--text)' }}>
             {file.name}
           </div>
@@ -173,10 +177,10 @@ export function FileListItem({
         </span>
       )}
 
-      <span className="flex-shrink-0 mono text-xs" style={{ color: 'var(--dim)', fontSize: 10, minWidth: 56, textAlign: 'right' }}>{file.sizeFmt}</span>
-      <span className="flex-shrink-0 text-xs" style={{ color: 'var(--dim)', fontSize: 10, minWidth: 64, textAlign: 'right' }}>{fmtDate(file.modified)}</span>
+      <span className="flex-shrink-0 mono text-xs truncate" style={{ color: 'var(--dim)', fontSize: 10, width: 72, textAlign: 'right' }}>{file.sizeFmt}</span>
+      <span className="flex-shrink-0 text-xs truncate" style={{ color: 'var(--dim)', fontSize: 10, width: 108, textAlign: 'right' }}>{fmtDate(file.modified)}</span>
 
-      {file.type !== 'dir' && (
+      {file.type !== 'dir' ? (
         <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <button className="btn-ghost rounded p-1" title="Copy path" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(file.path); }}>
             <Copy size={11} />
@@ -198,6 +202,12 @@ export function FileListItem({
           </button>
           <button className="btn-danger rounded p-1" title="Delete" onClick={(e) => { e.stopPropagation(); onAction('delete', file); }}>
             <Trash2 size={11} />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button className="btn-neon rounded px-1.5 py-1 text-xs" title="Scan this folder" onClick={(e) => { e.stopPropagation(); onAction('scan-folder', file); }}>
+            Scan
           </button>
         </div>
       )}

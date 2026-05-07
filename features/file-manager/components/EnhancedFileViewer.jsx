@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ExternalLink, Monitor, AppWindow } from 'lucide-react';
 
 function getFileType(path) {
   const ext = path.split('.').pop().toLowerCase();
@@ -20,6 +20,7 @@ function getFileType(path) {
 export default function EnhancedFileViewer({ file, onClose, onAction, onNext, onPrev, hasNext, hasPrev }) {
   const [zoom, setZoom] = useState(100);
   const [imgError, setImgError] = useState(false);
+  const [viewMode, setViewMode] = useState('inapp');
   
   const fileType = getFileType(file?.path || '');
   const previewUrl = file ? `/api/preview?p=${encodeURIComponent(file.path)}` : '';
@@ -60,19 +61,19 @@ export default function EnhancedFileViewer({ file, onClose, onAction, onNext, on
             </button>
           )}
           <div className="w-px h-6 mx-2" style={{ background: 'var(--border)' }} />
+          <button
+            onClick={() => setViewMode((v) => (v === 'inapp' ? 'external' : 'inapp'))}
+            className="p-2 hover:bg-gray-700 rounded"
+            title={viewMode === 'inapp' ? 'Switch to external mode' : 'Switch to in-app mode'}
+          >
+            {viewMode === 'inapp' ? <Monitor size={16} style={{ color: 'var(--muted)' }} /> : <AppWindow size={16} style={{ color: 'var(--muted)' }} />}
+          </button>
           <button 
             onClick={() => onAction?.('open', file)} 
             className="p-2 hover:bg-gray-700 rounded" 
             title="Open external"
           >
             <ExternalLink size={16} style={{ color: 'var(--muted)' }} />
-          </button>
-          <button 
-            onClick={() => onAction?.('download', file)} 
-            className="p-2 hover:bg-gray-700 rounded" 
-            title="Download"
-          >
-            <Download size={16} style={{ color: 'var(--muted)' }} />
           </button>
           <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded" title="Close">
             <X size={16} style={{ color: 'var(--muted)' }} />
@@ -82,7 +83,19 @@ export default function EnhancedFileViewer({ file, onClose, onAction, onNext, on
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto flex items-center justify-center p-4">
-        {fileType === 'image' ? (
+        {viewMode === 'external' ? (
+          <div className="text-center">
+            <div className="text-6xl mb-4">↗️</div>
+            <p style={{ color: 'var(--muted)' }}>External mode selected</p>
+            <button
+              onClick={() => onAction?.('open', file)}
+              className="mt-4 px-4 py-2 rounded text-sm font-semibold"
+              style={{ background: 'var(--neon)', color: '#000' }}
+            >
+              Open in system app
+            </button>
+          </div>
+        ) : fileType === 'image' ? (
           !imgError ? (
             <img
               src={previewUrl}
@@ -110,40 +123,16 @@ export default function EnhancedFileViewer({ file, onClose, onAction, onNext, on
             </div>
           )
         ) : fileType === 'pdf' ? (
-          <div className="text-center">
-            <div className="text-6xl mb-4">📄</div>
-            <p style={{ color: 'var(--muted)' }}>PDF preview not available in-app</p>
-            <button
-              onClick={() => onAction?.('open', file)}
-              className="mt-4 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: 'var(--neon)', color: '#000' }}
-            >
-              Open PDF
-            </button>
+          <div className="w-full h-full">
+            <iframe src={previewUrl} title={fileName} className="w-full h-full rounded" />
           </div>
         ) : fileType === 'doc' ? (
-          <div className="text-center">
-            <div className="text-6xl mb-4">📝</div>
-            <p style={{ color: 'var(--muted)' }}>Document preview not available in-app</p>
-            <button
-              onClick={() => onAction?.('open', file)}
-              className="mt-4 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: 'var(--neon)', color: '#000' }}
-            >
-              Open Document
-            </button>
+          <div className="w-full h-full p-4 rounded" style={{ background: 'var(--s2)' }}>
+            <iframe src={previewUrl} title={fileName} className="w-full h-full rounded" />
           </div>
         ) : fileType === 'video' ? (
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎥</div>
-            <p style={{ color: 'var(--muted)' }}>Video player not available in-app</p>
-            <button
-              onClick={() => onAction?.('open', file)}
-              className="mt-4 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: 'var(--neon)', color: '#000' }}
-            >
-              Play Video
-            </button>
+          <div className="w-full h-full flex items-center justify-center">
+            <video src={previewUrl} controls className="max-w-full max-h-full rounded" />
           </div>
         ) : (
           <div className="text-center">

@@ -1,8 +1,10 @@
 import { spawn } from 'child_process';
+import { createInterface } from 'readline';
 import path from 'path';
 import os from 'os';
 import { S, resetState, push } from '../../../../lib/state.js';
 import { addScan } from '../../../../lib/history.js';
+import { createScanProcessor, processScannerStream } from '../../../../lib/db-scan.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,52 +30,71 @@ export async function POST(req) {
     const py = process.platform === 'win32' ? 'python' : 'python3';
     const script = path.join(process.cwd(), 'scanner.py');
 
-    const args = [script, '--path', scanPath, '--report', reportPath];
+    const args = [script, '--path', scanPath, '--report', reportPath, '--mode', 'duplicates'];
     if (includeHidden) args.push('--hidden');
     if (mode === 'single' && targetFile) args.push('--file', targetFile);
 
     const proc = spawn(py, args, { stdio: ['ignore','pipe','pipe'] });
     S.proc = proc;
 
-    let buf = '';
-    proc.stdout.on('data', chunk => {
-      buf += chunk.toString();
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      for (const line of lines) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const ev = JSON.parse(t);
-          // update state
-          if (ev.type === 'dup') S.dups.push(ev);
-          else if (ev.type === 'scanning') { S.progress.stage='Scanning files…'; S.progress.n=ev.n; S.progress.dir=ev.dir; }
-          else if (ev.type === 'phase2') { S.progress.stage='Comparing files…'; }
-          else if (ev.type === 'hashing') { S.progress.stage='Hashing files…'; S.progress.total=ev.candidates; }
-          else if (ev.type === 'progress') { S.progress.done=ev.done; S.progress.total=ev.total; }
-          else if (ev.type === 'done') { S.status='done'; persistHistory(id, reportPath); }
-          else if (ev.type === 'stopped') { S.status='stopped'; }
-          else if (ev.type === 'error') { S.status='error'; S.progress.stage=ev.msg; }
-          push(ev);
-        } catch {}
-      }
-    });
-    proc.stderr.on('data', d => console.error('py:', d.toString().trim()));
-    proc.on('close', code => {
-      if (S.status === 'scanning') {
-        S.status = code === 0 ? 'done' : 'error';
-        const ev = { type: code === 0 ? 'done' : 'error', msg: code !== 0 ? `exited ${code}` : undefined };
-        push(ev);
-        if (code === 0) persistHistory(id, reportPath);
-      }
-      S.proc = null;
-    });
-    proc.on('error', err => {
-      S.status = 'error'; S.progress.stage = err.message;
-      push({ type:'error', msg: err.message }); S.proc = null;
+    // Create ScanProcessor for database persistence
+    const processor = await createScanProcessor(id, 'duplicates');
+
+    // Create readline interface for JSON-line events
+    const rl = createInterface({
+      input: proc.stdout,
+      crlfDelay: Infinity,
     });
 
-    return Response.json({ id });
+    // Process events - route to processor AND maintain legacy state
+    rl.on('line', async (line) => {
+      if (!line.trim()) return;
+      try {
+        const event = JSON.parse(line);
+        
+        // Send to processor for database persistence
+        await processor.processEvent(event);
+        
+        // Also maintain legacy in-memory state for SSE
+        if (event.type === 'dup') S.dups.push(event);
+        else if (event.type === 'scanning') { S.progress.stage='Scanning files…'; S.progress.n=event.n; S.progress.dir=event.dir; }
+        else if (event.type === 'phase2') { S.progress.stage='Comparing files…'; }
+        else if (event.type === 'hashing') { S.progress.stage='Hashing files…'; S.progress.total=event.candidates; }
+        else if (event.type === 'progress') { S.progress.done=event.done; S.progress.total=event.total; }
+        else if (event.type === 'stopped') { S.status='stopped'; }
+        else if (event.type === 'error') { S.status='error'; S.progress.stage=event.msg; }
+        push(event);
+      } catch (err) {
+        console.error(`[scan/start] Event processing error:`, err.message);
+      }
+    });
+
+    rl.on('close', async () => {
+      try {
+        await processor.flush();
+        console.log(`[scan/start] Scan ${id} successfully flushed to database`);
+      } catch (err) {
+        console.error(`[scan/start] Flush error:`, err.message);
+      }
+    });
+
+    rl.on('error', (err) => {
+      console.error(`[scan/start] Readline error:`, err.message);
+    });
+
+    proc.stderr.on('data', d => console.error('[scan/start] py:', d.toString().trim()));
+    
+    proc.on('error', err => {
+      S.status = 'error'; S.progress.stage = err.message;
+      push({ type:'error', msg: err.message }); 
+      S.proc = null;
+    });
+
+    proc.on('close', code => {
+      if (S.proc === proc) S.proc = null;
+    });
+
+    return Response.json({ id, scanPath, startedAt: S.startedAt });
   } catch (e) { return Response.json({ error: e.message }, { status: 500 }); }
 }
 

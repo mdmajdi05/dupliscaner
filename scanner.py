@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""DupScan — Real-time duplicate file scanner. Outputs JSON lines to stdout."""
+"""DupScan — Real-time duplicate file scanner. Outputs JSON lines to stdout.
+
+Modes:
+  - duplicates: Find duplicate files (default, current behavior)
+  - full: Traverse all files, hash all, report all with metadata
+
+Incremental Mode:
+  - --previous-hashes: Accept JSON file with previous hashing results
+  - Only hash files with changed size/mtime
+  - Output change types: file_changed|file_unchanged|file_deleted|file_added
+"""
 import os, hashlib, sys, json, signal, argparse
 from collections import defaultdict
 from pathlib import Path
@@ -55,16 +65,43 @@ def file_hash(path, chunk=65536):
         return h.hexdigest()
     except: return None
 
-def scan(root, skip_hidden, report_path, single_file=None):
-    global running
-    emit({"type":"start","path":root,"ts":now(),"mode":"single" if single_file else "scan"})
+def load_previous_hashes(file_path):
+    """Load previous hashing results from JSON file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return {item['path']: item for item in data.get('files', [])}
+    except:
+        return {}
 
-    # ── Phase 1: collect files ──────────────────────────────────────
+def get_file_metadata(path):
+    """Get file metadata (size, mtime, hash, etc)."""
+    try:
+        st = os.stat(path)
+        size = st.st_size
+        mtime = int(st.st_mtime)
+        ext = Path(path).suffix.lower()
+        return {
+            'path': path,
+            'name': Path(path).name,
+            'folder': str(Path(path).parent),
+            'size': size,
+            'mtime': mtime,
+            'ext': ext,
+            'category': get_cat(ext),
+        }
+    except:
+        return None
+
+def scan_duplicates(root, skip_hidden, report_path, single_file=None):
+    """Original mode: Find duplicate files (size grouping + hash comparison)."""
+    global running
+    emit({"type":"start","path":root,"ts":now(),"mode":"duplicates"})
+
     by_size = defaultdict(list)
     n = 0
 
     if single_file:
-        # Find duplicates of a specific file
         if not os.path.isfile(single_file):
             emit({"type":"error","msg":f"File not found: {single_file}"}); return
         target_hash = file_hash(single_file)
@@ -72,7 +109,6 @@ def scan(root, skip_hidden, report_path, single_file=None):
         if not target_hash:
             emit({"type":"error","msg":"Cannot read target file"}); return
         emit({"type":"target_info","path":single_file,"hash":target_hash,"size":target_size,"sizeFmt":fmt(target_size)})
-        # Now scan root for same-size files
         for dp, dns, fns in os.walk(root):
             if not running: break
             if skip_hidden: dns[:] = [d for d in dns if not d.startswith('.') and d not in SKIP_DIRS]
@@ -103,7 +139,6 @@ def scan(root, skip_hidden, report_path, single_file=None):
 
     emit({"type":"phase2","total":n})
 
-    # ── Phase 2: hash comparison ────────────────────────────────────
     candidates = {s:p for s,p in by_size.items() if len(p) > 1}
     total_cands = sum(len(v) for v in candidates.values())
     emit({"type":"hashing","candidates":total_cands})
@@ -155,7 +190,6 @@ def scan(root, skip_hidden, report_path, single_file=None):
             }
             emit(obj)
 
-            # report
             report_lines.append(f"[{cat}] {Path(fps[0]).name}")
             report_lines.append(f"  Size: {fmt(sz)} x{len(fps)} copies  |  Wasted: {fmt(waste)}")
             for i,fp in enumerate(fps):
@@ -164,7 +198,6 @@ def scan(root, skip_hidden, report_path, single_file=None):
 
     emit({"type":"progress","done":total_cands,"total":total_cands})
 
-    # ── Phase 3: save report ────────────────────────────────────────
     try:
         os.makedirs(os.path.dirname(report_path), exist_ok=True)
         with open(report_path, 'w', encoding='utf-8') as f:
@@ -175,22 +208,138 @@ def scan(root, skip_hidden, report_path, single_file=None):
 
     emit({"type":"done","ts":now(),"total_dups":dup_id})
 
+
+def scan_full(root, skip_hidden, previous_hashes_file=None):
+    """Full mode: Traverse all files, hash all, report all with metadata."""
+    global running
+    emit({"type":"start","path":root,"ts":now(),"mode":"full"})
+    
+    previous_hashes = {}
+    is_incremental = False
+    if previous_hashes_file:
+        try:
+            previous_hashes = load_previous_hashes(previous_hashes_file)
+            is_incremental = True
+            emit({"type":"incremental_mode","previous_hashes_count":len(previous_hashes)})
+        except Exception as e:
+            emit({"type":"warning","msg":f"Failed to load previous hashes: {str(e)}"})
+    
+    emit({"type":"phase1_start","description":"Traversing directory..."})
+    all_files = {}
+    file_count = 0
+    
+    for dp, dns, fns in os.walk(root):
+        if not running: break
+        if skip_hidden:
+            dns[:] = [d for d in dns if not d.startswith('.') and d not in SKIP_DIRS]
+        
+        for fn in fns:
+            if not running: break
+            if skip_hidden and fn.startswith('.'): continue
+            
+            fp = os.path.join(dp, fn)
+            metadata = get_file_metadata(fp)
+            if metadata:
+                all_files[fp] = metadata
+                file_count += 1
+            
+            if file_count % 500 == 0:
+                emit({"type":"progress","phase":1,"files_found":file_count,"current_dir":dp})
+    
+    emit({"type":"phase1_complete","total_files":file_count})
+    
+    emit({"type":"phase2_start","description":"Hashing files...","is_incremental":is_incremental})
+    
+    files_to_hash = []
+    files_unchanged = []
+    files_deleted = []
+    
+    for path, metadata in all_files.items():
+        prev = previous_hashes.get(path)
+        
+        if prev:
+            if prev.get('size') == metadata['size'] and prev.get('mtime') == metadata['mtime']:
+                metadata['hash'] = prev.get('hash')
+                metadata['change_type'] = 'file_unchanged'
+                files_unchanged.append(path)
+                emit({"type":"file_unchanged","path":path,"hash":metadata['hash']})
+            else:
+                metadata['change_type'] = 'file_changed'
+                files_to_hash.append(path)
+        else:
+            metadata['change_type'] = 'file_added'
+            files_to_hash.append(path)
+    
+    for prev_path in previous_hashes:
+        if prev_path not in all_files:
+            files_deleted.append(prev_path)
+            emit({"type":"file_deleted","path":prev_path})
+    
+    emit({"type":"hashing_start","files_to_hash":len(files_to_hash),"files_unchanged":len(files_unchanged),"files_deleted":len(files_deleted)})
+    
+    hashed = 0
+    for path in files_to_hash:
+        if not running: break
+        metadata = all_files[path]
+        h = file_hash(path)
+        if h:
+            metadata['hash'] = h
+            emit({"type":"file_hashed","path":path,"hash":h,"size":metadata['size'],"change_type":metadata['change_type']})
+        else:
+            emit({"type":"file_hash_error","path":path,"error":"Cannot read file"})
+        
+        hashed += 1
+        if hashed % 100 == 0:
+            emit({"type":"progress","phase":2,"files_hashed":hashed,"total_to_hash":len(files_to_hash)})
+    
+    emit({"type":"phase2_complete","files_hashed":hashed})
+    
+    emit({"type":"phase3_start","description":"Emitting results...","total_files":len(all_files)})
+    
+    emitted = 0
+    for path, metadata in all_files.items():
+        if not running: break
+        emit({
+            "type": "file_record",
+            "path": path,
+            "name": metadata['name'],
+            "folder": metadata['folder'],
+            "size": metadata['size'],
+            "sizeFmt": fmt(metadata['size']),
+            "ext": metadata['ext'],
+            "category": metadata['category'],
+            "mtime": metadata['mtime'],
+            "hash": metadata.get('hash'),
+            "change_type": metadata.get('change_type', 'file_added')
+        })
+        emitted += 1
+        if emitted % 500 == 0:
+            emit({"type":"progress","phase":3,"files_emitted":emitted,"total_files":len(all_files)})
+    
+    emit({"type":"done","ts":now(),"mode":"full","total_files":len(all_files),"files_hashed":hashed,"files_unchanged":len(files_unchanged),"files_deleted":len(files_deleted)})
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--path", default=os.path.expanduser("~"))
+    p.add_argument("--mode", default="duplicates", choices=["duplicates", "full"], help="Scan mode: duplicates or full")
     p.add_argument("--report", default="")
     p.add_argument("--hidden", action="store_true")
-    p.add_argument("--file", default="", help="Find duplicates of a specific file")
+    p.add_argument("--file", default="", help="Find duplicates of a specific file (duplicates mode only)")
+    p.add_argument("--previous-hashes", default="", help="Path to JSON file with previous hashing results (incremental mode)")
     args = p.parse_args()
     
-    # Use AppData path if report not provided
-    report_path = args.report
-    if not report_path:
-        appdata = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
-        reports_dir = os.path.join(appdata, 'DupScan', 'reports')
-        os.makedirs(reports_dir, exist_ok=True)
-        report_path = os.path.join(reports_dir, f"report_{int(datetime.now().timestamp()*1000)}.txt")
-    else:
-        os.makedirs(os.path.dirname(report_path), exist_ok=True)
+    if args.mode == "duplicates":
+        report_path = args.report
+        if not report_path:
+            appdata = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
+            reports_dir = os.path.join(appdata, 'DupScan', 'reports')
+            os.makedirs(reports_dir, exist_ok=True)
+            report_path = os.path.join(reports_dir, f"report_{int(datetime.now().timestamp()*1000)}.txt")
+        else:
+            os.makedirs(os.path.dirname(report_path), exist_ok=True)
+        
+        scan_duplicates(args.path, not args.hidden, report_path, args.file or None)
     
-    scan(args.path, not args.hidden, report_path, args.file or None)
+    elif args.mode == "full":
+        scan_full(args.path, not args.hidden, args.previous_hashes or None)

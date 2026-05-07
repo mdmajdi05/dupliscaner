@@ -10,11 +10,11 @@ export async function fetchScanProgress() {
   return response.json();
 }
 
-export async function startFmBackgroundScan({ path, includeHidden }) {
+export async function startFmBackgroundScan({ path, includeHidden, mode = 'manual' }) {
   return fetch('/api/fm/scan-bg', {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ action: 'start', path, includeHidden }),
+    body: JSON.stringify({ action: 'start', path, includeHidden, mode }),
   });
 }
 
@@ -71,4 +71,12 @@ export async function runFileAction(action, payload = {}) {
   });
   const data = await response.json().catch(() => ({}));
   return { ok: response.ok, data };
+}
+
+export async function listDuplicateGroups({ path, cat = 'all', limit = 100 }) {
+  const params = toQuery({ path, cat, limit: String(limit) });
+  const response = await fetch(`/api/fm/duplicates?${params}`);
+  if (!response.ok) return { ok: false, data: { groups: [], status: 'idle', progress: {} } };
+  const data = await response.json().catch(() => ({ groups: [], status: 'idle', progress: {} }));
+  return { ok: true, data };
 }

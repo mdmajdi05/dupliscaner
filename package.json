@@ -8,10 +8,11 @@
     "start": "next start -p 30033"
   },
   "dependencies": {
+    "lucide-react": "^0.400.0",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.400.0"
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

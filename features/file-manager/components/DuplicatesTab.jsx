@@ -5,6 +5,14 @@ import {
   Image, Loader, MapPin, Music, Play, RefreshCw, Shield, Square,
   Trash2, Video, X
 } from 'lucide-react';
+import { fmtSize } from '../../../shared/utils/formatters';
+import { buildPreviewUrl } from '../../../shared/utils/preview';
+import {
+  listDuplicateGroups,
+  runFileAction,
+  startFmBackgroundScan,
+  stopFmBackgroundScan,
+} from '../services/fileManagerService';
 
 const DUP_TABS = [
   { id: 'all', label: 'All', icon: Shield },
@@ -23,17 +31,6 @@ const CAT_COLOR = {
   other: '#6b7280',
 };
 
-function fmtSize(bytes) {
-  if (!bytes) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
-  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
-}
-
-function previewUrl(path) {
-  return `/api/preview?p=${encodeURIComponent(path)}`;
-}
-
 function AudioButton({ file }) {
   const [playing, setPlaying] = useState(false);
   const ref = useRef(null);
@@ -41,7 +38,7 @@ function AudioButton({ file }) {
   const toggle = (e) => {
     e.stopPropagation();
     if (!ref.current) {
-      ref.current = new Audio(previewUrl(file.path));
+      ref.current = new Audio(buildPreviewUrl(file.path));
       ref.current.onended = () => setPlaying(false);
     }
     if (playing) {
@@ -75,28 +72,28 @@ function CompareMedia({ file }) {
   }
 
   if (file.category === 'image') {
-    return <img src={previewUrl(file.path)} alt={file.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />;
+    return <img src={buildPreviewUrl(file.path)} alt={file.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />;
   }
   if (file.category === 'video') {
-    return <video src={previewUrl(file.path)} controls style={{ maxWidth: '100%', maxHeight: '100%' }} />;
+    return <video src={buildPreviewUrl(file.path)} controls style={{ maxWidth: '100%', maxHeight: '100%' }} />;
   }
   if (file.category === 'audio') {
     return (
       <div className="flex flex-col items-center justify-center gap-4 h-full">
         <Music size={42} style={{ color: CAT_COLOR.audio }} />
-        <audio src={previewUrl(file.path)} controls style={{ width: '90%' }} />
+        <audio src={buildPreviewUrl(file.path)} controls style={{ width: '90%' }} />
       </div>
     );
   }
   if (file.category === 'document' && file.ext === '.pdf') {
-    return <iframe src={previewUrl(file.path)} className="w-full h-full" style={{ border: 'none' }} />;
+    return <iframe src={buildPreviewUrl(file.path)} className="w-full h-full" style={{ border: 'none' }} />;
   }
 
   return (
     <div className="h-full flex flex-col items-center justify-center gap-3">
       <File size={42} style={{ color: 'var(--dim)' }} />
       <span className="text-xs font-bold" style={{ color: 'var(--muted)' }}>{file.ext || 'file'}</span>
-      <button className="btn-ghost rounded px-3 py-1.5 text-xs" onClick={() => window.open(previewUrl(file.path), '_blank')}>
+      <button className="btn-ghost rounded px-3 py-1.5 text-xs" onClick={() => window.open(buildPreviewUrl(file.path), '_blank')}>
         Open preview
       </button>
     </div>
@@ -192,7 +189,7 @@ function FileRow({ file, group, selected, onSelect, onDelete, onMarkOriginal, on
           <Copy size={11} />
         </button>
         <button className="btn-ghost rounded p-1" title="Go to file location"
-          onClick={() => fetch('/api/fm/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'open-location', src: file.path }) })}>
+          onClick={() => runFileAction('open-location', { src: file.path })}>
           <MapPin size={11} />
         </button>
         {!isOriginal && (
@@ -251,10 +248,8 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
   const pollRef = useRef(null);
 
   const loadGroups = useCallback(async () => {
-    const params = new URLSearchParams({ path: rootPath || 'C:\\', cat: activeSubTab, limit: '100' });
-    const res = await fetch(`/api/fm/duplicates?${params}`);
-    if (!res.ok) return;
-    const data = await res.json();
+    const { ok, data } = await listDuplicateGroups({ path: rootPath || 'C:\\', cat: activeSubTab, limit: 100 });
+    if (!ok) return;
     setGroups(data.groups || []);
     setStatus(data.status || 'idle');
     setProgress(data.progress || {});
@@ -269,21 +264,13 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
   }, [loadGroups, status]);
 
   const startScan = async () => {
-    await fetch('/api/fm/scan-bg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'start', path: rootPath || 'C:\\', includeHidden }),
-    });
+    await startFmBackgroundScan({ path: rootPath || 'C:\\', includeHidden, mode: 'manual' });
     setStatus('scanning');
     setTimeout(loadGroups, 700);
   };
 
   const stopScan = async () => {
-    await fetch('/api/fm/scan-bg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'stop' }),
-    });
+    await stopFmBackgroundScan();
     setStatus('stopped');
     setTimeout(loadGroups, 500);
   };
@@ -298,11 +285,7 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
 
   const deletePath = async (filePath) => {
     if (!confirm(`Delete duplicate?\n\n${filePath}`)) return;
-    await fetch('/api/fm/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', src: filePath }),
-    });
+    await runFileAction('delete', { src: filePath });
     setSelected((prev) => {
       const next = new Set(prev);
       next.delete(filePath);
@@ -314,22 +297,14 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
   const bulkDelete = async () => {
     if (!selected.size || !confirm(`Delete ${selected.size} selected duplicate files?`)) return;
     for (const filePath of selected) {
-      await fetch('/api/fm/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', src: filePath }),
-      });
+      await runFileAction('delete', { src: filePath });
     }
     setSelected(new Set());
     loadGroups();
   };
 
   const markOriginal = async (groupId, originalPath) => {
-    await fetch('/api/fm/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'mark-original', groupId, originalPath }),
-    });
+    await runFileAction('mark-original', { groupId, originalPath });
     loadGroups();
   };
 
@@ -373,7 +348,7 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
             </button>
           ) : (
             <button className="btn-neon flex items-center gap-1.5 px-3 py-1.5 rounded text-xs" onClick={startScan}>
-              <Play size={11} /> Scan C drive
+              <Play size={11} /> Scan {rootPath || 'C:\\'}
             </button>
           )}
         </div>
@@ -406,7 +381,7 @@ export default function DuplicatesTab({ rootPath = 'C:\\', includeHidden = false
             <AlertTriangle size={42} style={{ color: 'var(--dim)' }} />
             <div className="text-lg font-bold" style={{ color: 'var(--text)' }}>No cached duplicates yet</div>
             <div className="text-sm text-center" style={{ color: 'var(--muted)' }}>
-              Start the C drive background scan. Existing cache will show here instantly next time.
+              Start background scan. Existing cache will show here instantly next time.
             </div>
           </div>
         ) : groups.map((group) => (

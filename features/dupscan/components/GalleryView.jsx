@@ -4,21 +4,10 @@ import { Crown, ArrowLeftRight, Trash2, ZoomIn, ZoomOut, Eye, Image,
          Video, Music, FileText, File, Shield, Bookmark, CheckCircle2 } from 'lucide-react';
 import StatusPill from './StatusPill';
 import { getLazyDups } from '../../../lib/scan-controller';
+import { buildPreviewUrl } from '../../../shared/utils/preview';
+import { getPreviewFileType } from '../../../shared/utils/fileType';
 
 function fmtSize(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return`${(b/Math.pow(1024,i)).toFixed(1)} ${u[i]}`;}
-
-const IMG_EXTS = new Set(['.jpg','.jpeg','.png','.gif','.webp','.bmp','.svg','.avif','.tiff','.tif']);
-const VID_EXTS = new Set(['.mp4','.webm','.mkv','.avi','.mov','.wmv','.m4v','.3gp']);
-const AUD_EXTS = new Set(['.mp3','.wav','.flac','.aac','.ogg','.m4a','.opus','.wma']);
-
-function getType(ext){
-  const e=(ext||'').toLowerCase();
-  if(IMG_EXTS.has(e))return'image';
-  if(VID_EXTS.has(e))return'video';
-  if(AUD_EXTS.has(e))return'audio';
-  if(e==='.pdf')return'pdf';
-  return'other';
-}
 
 const STATUS_ICON = {
   keep:    <Shield size={10} style={{color:'#22c55e'}}/>,
@@ -29,8 +18,8 @@ const STATUS_ICON = {
 const STATUS_COLOR = {keep:'#22c55e',review:'#3b82f6',need:'#a855f7',deleted:'#6b7280'};
 
 function ThumbnailCard({ file, fileIdx, groupId, isKeep, status, tileSize, onSetStatus, onClearStatus, onSetKeep, onDeleteFile, onPreview, group }) {
-  const type = getType(file.ext);
-  const previewUrl = `/api/preview?p=${encodeURIComponent(file.path)}`;
+  const type = getPreviewFileType(file.ext);
+  const previewUrl = buildPreviewUrl(file.path);
   const st = status[file.path];
   const isDeleted = st === 'deleted';
   const [hovered, setHovered] = useState(false);

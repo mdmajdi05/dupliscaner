@@ -16,6 +16,18 @@ const MIME = {
   '.json':'application/json','.csv':'text/csv','.html':'text/html',
 };
 
+function buildHeaders(mime, size, filePath, extra = {}) {
+  const fileName = path.basename(filePath).replace(/"/g, '');
+  return {
+    'Content-Type': mime,
+    'Accept-Ranges': 'bytes',
+    'Content-Length': String(size),
+    'Content-Disposition': `inline; filename="${fileName}"`,
+    'Cache-Control': 'public, max-age=300',
+    ...extra,
+  };
+}
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const filePath = searchParams.get('p');
@@ -41,8 +53,9 @@ export async function GET(req) {
     fs.closeSync(fd);
     return new Response(buf, {
       status: 206,
-      headers: { 'Content-Type': mime, 'Content-Range': `bytes ${start}-${end}/${size}`,
-                 'Accept-Ranges': 'bytes', 'Content-Length': String(len) },
+      headers: buildHeaders(mime, len, filePath, {
+        'Content-Range': `bytes ${start}-${end}/${size}`,
+      }),
     });
   }
 
@@ -54,12 +67,12 @@ export async function GET(req) {
       cancel() { rs.destroy(); },
     });
     return new Response(ws, {
-      headers: { 'Content-Type': mime, 'Accept-Ranges': 'bytes', 'Content-Length': String(size) },
+      headers: buildHeaders(mime, size, filePath),
     });
   }
 
   const buf = fs.readFileSync(filePath);
   return new Response(buf, {
-    headers: { 'Content-Type': mime, 'Accept-Ranges': 'bytes', 'Content-Length': String(size) },
+    headers: buildHeaders(mime, size, filePath),
   });
 }

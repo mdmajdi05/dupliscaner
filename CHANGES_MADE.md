@@ -1,5 +1,36 @@
 # Changes Made - Complete List
 
+## 2026-05-06 - File Manager stability and scan control fixes
+
+- Added explicit FM scan mode control (`auto` / `manual`) and persisted mode/path settings in `FileManagerDashboard`.
+- Removed forced startup scanning unless mode is `auto`; startup now loads previous indexed content first from `%LOCALAPPDATA%/DupScan/history.json`.
+- Improved FM scan persistence in `app/api/fm/scan-bg/route.js` by saving incremental worker updates more aggressively.
+- Kept BFS traversal behavior in worker flow and added per-folder manual scan action in list rows.
+- Improved grid/list rendering stability:
+  - Fixed virtual grid to use measured container width + fixed column sizing.
+  - Reduced full-screen loading flashes during paginated append loads.
+  - Added sidebar and toolbar collapse/expand controls.
+- Upgraded `EnhancedFileViewer` to support in-app PDF/video/document rendering and user-selectable external mode.
+- Validation: `npm run build` passes successfully after these changes.
+
+## 2026-05-07 - DupScan PDF preview + consistency audit
+
+- Completed cross-feature consistency audit for `features/dupscan` and `features/file-manager` and identified alignment priorities (service abstraction, duplicated helpers, preview UX parity, virtualization consistency).
+- Fixed DupScan preview response behavior in `app/api/preview/route.js`:
+  - Added `Content-Disposition: inline` with filename to reduce browser download fallback for previews.
+  - Standardized headers for range/full/stream responses through a shared header builder.
+  - Added short-lived cache header to improve repeat preview responsiveness.
+- Validation: `npm run build` passes successfully.
+
+## 2026-05-07 - Shared consistency refactor
+
+- Added shared helpers:
+  - `shared/utils/preview.js` for centralized preview URL creation
+  - `shared/utils/fileType.js` for reusable preview file-type classification
+- Refactored `features/file-manager/components/DuplicatesTab.jsx` to remove direct API `fetch` calls and use `fileManagerService` (`listDuplicateGroups`, `runFileAction`, start/stop scan services).
+- Updated DupScan components (`GalleryView`, `PreviewModal`) to consume shared preview/type helpers for cross-feature consistency.
+- Updated wiring and feature README docs for new shared utility/service usage.
+
 ## 📝 Files Created
 
 ### **Components**

@@ -22,6 +22,11 @@ import {
   Zap,
   Loader,
   Settings,
+  Play,
+  PauseCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 import FileManagerSidebar from './FileManagerSidebar';
@@ -114,6 +119,9 @@ export default function FileManagerDashboard() {
   const [folderStats, setFolderStats] = useState({});
   const [isAutoScanning, setIsAutoScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState({ phase: 'idle' });
+  const [scanMode, setScanMode] = useState('manual');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
 
 
   // action modal state
@@ -125,6 +133,7 @@ export default function FileManagerDashboard() {
   const [containerDims, setContainerDims] = useState({ height: 600, width: 800 });
   const containerRef = useRef(null);
   const startedScanRef = useRef(false);
+  const hydratedSettingsRef = useRef(false);
 
   const [showSettings, setShowSettings] = useState(false);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
@@ -142,6 +151,7 @@ export default function FileManagerDashboard() {
       if (!data) return null;
       setScanProgress(data.progress || {});
       setIsAutoScanning(data.status === 'scanning');
+      if (data.scanMode === 'auto' || data.scanMode === 'manual') setScanMode(data.scanMode);
       if (data.rootPath) {
         setRootPath(data.rootPath);
         setInputPath(data.rootPath);
@@ -155,9 +165,9 @@ export default function FileManagerDashboard() {
 
   const startBackgroundScan = useCallback(async (path = rootPath, hidden = includeHidden) => {
     setIsAutoScanning(true);
-    await startFmBackgroundScan({ path, includeHidden: hidden });
+    await startFmBackgroundScan({ path, includeHidden: hidden, mode: scanMode });
     setTimeout(refreshScanProgress, 500);
-  }, [includeHidden, refreshScanProgress, rootPath]);
+  }, [includeHidden, refreshScanProgress, rootPath, scanMode]);
 
   const stopBackgroundScan = useCallback(async () => {
     await stopFmBackgroundScan();
@@ -166,19 +176,44 @@ export default function FileManagerDashboard() {
   }, [refreshScanProgress]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || hydratedSettingsRef.current) return;
+    hydratedSettingsRef.current = true;
+    try {
+      const savedMode = window.localStorage.getItem('fm-scan-mode');
+      if (savedMode === 'auto' || savedMode === 'manual') setScanMode(savedMode);
+      const savedPath = window.localStorage.getItem('fm-root-path');
+      if (savedPath) {
+        setRootPath(savedPath);
+        setInputPath(savedPath);
+        setCurFolder(savedPath);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { window.localStorage.setItem('fm-scan-mode', scanMode); } catch {}
+  }, [scanMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { window.localStorage.setItem('fm-root-path', rootPath); } catch {}
+  }, [rootPath]);
+
+  useEffect(() => {
     const init = async () => {
       const data = await refreshScanProgress();
       const resolvedRoot = data?.rootPath || DEFAULT_ROOT;
       setRootPath(resolvedRoot);
       setInputPath(resolvedRoot);
       setCurFolder(resolvedRoot);
-      if (!startedScanRef.current && data?.status !== 'scanning') {
+      if (!startedScanRef.current && scanMode === 'auto' && data?.status !== 'scanning') {
         startedScanRef.current = true;
         setTimeout(() => startBackgroundScan(resolvedRoot, includeHidden), 250);
       }
     };
     init();
-  }, [includeHidden, refreshScanProgress, startBackgroundScan]);
+  }, [includeHidden, refreshScanProgress, scanMode, startBackgroundScan]);
 
   // ── Poll folder stats while scanning ──────────────────────────────────────
 
@@ -188,7 +223,7 @@ export default function FileManagerDashboard() {
 
     if (!folder) return;
 
-    setLoading(true);
+    if (!append) setLoading(true);
 
     try {
 
@@ -217,7 +252,7 @@ export default function FileManagerDashboard() {
       setHasMore(data.hasMore || false);
 
     } catch {}
-    setLoading(false);
+    if (!append) setLoading(false);
   }, [activeTab, extFilter, folderSort, search, showFolders, sortBy, sortDir]);
 
   useEffect(() => {
@@ -248,7 +283,7 @@ export default function FileManagerDashboard() {
     if (!p) return;
     setRootPath(p);
     setCurFolder(p);
-    startBackgroundScan(p, includeHidden);
+    if (scanMode === 'auto') startBackgroundScan(p, includeHidden);
   };
 
 
@@ -303,6 +338,11 @@ export default function FileManagerDashboard() {
     if (type === 'scan-duplicates') {
       setActiveTab('duplicates');
       await startBackgroundScan(rootPath || DEFAULT_ROOT, includeHidden);
+      return;
+    }
+    if (type === 'scan-folder') {
+      const pathToScan = file?.type === 'dir' ? file.path : curFolder;
+      if (pathToScan) await startBackgroundScan(pathToScan, includeHidden);
       return;
     }
 
@@ -446,13 +486,22 @@ export default function FileManagerDashboard() {
 
       {/* ── Left panel: folder tree ── */}
 
-      <div className="w-52 flex-shrink-0 flex flex-col" style={{ background: 'var(--s1)', borderRight: '1px solid var(--border)' }}>
+      <div className={`${sidebarCollapsed ? 'w-12' : 'w-52'} flex-shrink-0 flex flex-col transition-all`} style={{ background: 'var(--s1)', borderRight: '1px solid var(--border)' }}>
 
         {/* path input */}
 
         <div className="p-2 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
 
           <div className="flex gap-1">
+            <button
+              className="btn-ghost px-1.5 py-1 rounded text-xs"
+              onClick={() => setSidebarCollapsed((v) => !v)}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen size={12} /> : <PanelLeftClose size={12} />}
+            </button>
+            {!sidebarCollapsed && (
+              <>
 
             <input
 
@@ -469,6 +518,8 @@ export default function FileManagerDashboard() {
             />
 
             <button className="btn-neon px-2 py-1 rounded text-xs" onClick={handleGoPath}>Go</button>
+              </>
+            )}
 
           </div>
 
@@ -476,7 +527,7 @@ export default function FileManagerDashboard() {
 
         <div className="flex-1 overflow-hidden">
 
-          <FileManagerSidebar
+          {!sidebarCollapsed && <FileManagerSidebar
 
             rootPath={rootPath}
 
@@ -484,7 +535,7 @@ export default function FileManagerDashboard() {
 
             onSelectFolder={handleSelectFolder}
 
-          />
+          />}
 
         </div>
 
@@ -575,6 +626,11 @@ export default function FileManagerDashboard() {
         {/* ── Toolbar ── */}
 
         <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0" style={{ background: 'var(--s1)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+          <button className="btn-ghost rounded p-1.5" onClick={() => setToolbarCollapsed(v => !v)} title="Collapse/expand toolbar">
+            <ChevronsUpDown size={13} />
+          </button>
+          {!toolbarCollapsed && (
+            <>
           {/* breadcrumb */}
 
           {curFolder && (
@@ -762,10 +818,14 @@ export default function FileManagerDashboard() {
           </button>
 
           {isAutoScanning ? (
-            <button className="btn-danger rounded px-2 py-1 text-xs" onClick={stopBackgroundScan}>Stop scan</button>
+            <button className="btn-danger rounded px-2 py-1 text-xs" onClick={stopBackgroundScan}><PauseCircle size={12} /> Stop scan</button>
           ) : (
-            <button className="btn-neon rounded px-2 py-1 text-xs" onClick={() => startBackgroundScan(rootPath, includeHidden)}>Scan C:</button>
+            <button className="btn-neon rounded px-2 py-1 text-xs" onClick={() => startBackgroundScan(curFolder || rootPath, includeHidden)}><Play size={12} /> Start scan</button>
           )}
+          <select className="inp px-2 py-1 text-xs" value={scanMode} onChange={(e) => setScanMode(e.target.value)} style={{ width: 95 }}>
+            <option value="auto">Auto</option>
+            <option value="manual">Manual</option>
+          </select>
 
           <button className="btn-ghost rounded p-1.5" title="Settings" onClick={() => setShowSettings(true)}>
             <Settings size={13} />
@@ -776,6 +836,8 @@ export default function FileManagerDashboard() {
             {filteredFiles.length}{total > filteredFiles.length ? `/${total}` : ''} files
 
           </span>
+            </>
+          )}
 
         </div>
 

@@ -3,20 +3,18 @@ import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Trash2, Crown, ArrowLeftRight,
          Volume2, VolumeX, Maximize2, File, Music, Video } from 'lucide-react';
 import StatusPill from './StatusPill';
+import { buildPreviewUrl } from '../../../shared/utils/preview';
+import { getPreviewFileType } from '../../../shared/utils/fileType';
 
 function fmtSize(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return`${(b/Math.pow(1024,i)).toFixed(1)} ${u[i]}`;}
 function fmtDate(ts){if(!ts)return'';return new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'});}
 
-const IMG_EXTS=new Set(['.jpg','.jpeg','.png','.gif','.webp','.bmp','.svg','.avif','.tiff','.tif']);
-const VID_EXTS=new Set(['.mp4','.webm','.mkv','.avi','.mov','.wmv','.m4v','.3gp']);
-const AUD_EXTS=new Set(['.mp3','.wav','.flac','.aac','.ogg','.m4a','.opus','.wma']);
-function getType(e){const x=(e||'').toLowerCase();if(IMG_EXTS.has(x))return'image';if(VID_EXTS.has(x))return'video';if(AUD_EXTS.has(x))return'audio';if(x==='.pdf')return'pdf';return'other';}
-function previewUrl(p){return`/api/preview?p=${encodeURIComponent(p)}`;}
+function previewUrl(p){return buildPreviewUrl(p);}
 
 const CAT_COLOR={Photos:'#f59e0b',Videos:'#ef4444',Audio:'#a855f7',Documents:'#3b82f6',Archives:'#f97316',Code:'#10b981',Others:'#6b7280'};
 
 function MediaContent({ file, sz }) {
-  const type = getType(file.ext);
+  const type = getPreviewFileType(file.ext);
   const [muted, setMuted] = useState(true);
   const [imgErr, setImgErr] = useState(false);
   const url = previewUrl(file.path);

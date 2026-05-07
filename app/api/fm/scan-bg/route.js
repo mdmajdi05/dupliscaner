@@ -10,6 +10,7 @@ import {
   mutateFileIndex,
   saveFileIndex,
 } from '../../../../lib/fm-cache.js';
+import { createScanProcessor } from '../../../../lib/db-scan.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,10 +18,11 @@ const STATE = global.__FM_SCAN || {
   worker: null,
   saveTimer: null,
   workingIndex: null,
+  processor: null,
 };
 global.__FM_SCAN = STATE;
 
-function scheduleSave(delay = 800) {
+function scheduleSave(delay = 150) {
   clearTimeout(STATE.saveTimer);
   STATE.saveTimer = setTimeout(() => {
     if (!STATE.workingIndex) return;
@@ -34,15 +36,17 @@ function stopWorker() {
   try { STATE.worker.postMessage({ type: 'stop' }); } catch {}
   try { STATE.worker.terminate(); } catch {}
   STATE.worker = null;
+  STATE.processor = null;
 }
 
-function startScan(rootPath = ROOT_PATH, includeHidden = false) {
+async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'manual') {
   stopWorker();
 
   const now = new Date().toISOString();
   STATE.workingIndex = loadFileIndex();
   STATE.workingIndex.rootPath = rootPath;
   STATE.workingIndex.includeHidden = includeHidden;
+  STATE.workingIndex.scanMode = mode;
   STATE.workingIndex.status = 'scanning';
   STATE.workingIndex.progress = {
     ...STATE.workingIndex.progress,
@@ -61,6 +65,10 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
   };
   saveFileIndex(STATE.workingIndex);
 
+  // Create ScanProcessor for database persistence
+  const scanId = `fm_${Date.now()}`;
+  STATE.processor = await createScanProcessor(scanId, 'full');
+
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const workerPath = path.resolve(__dirname, '../../../../lib/scanner-worker.js');
   const worker = new Worker(workerPath, { workerData: { rootPath, includeHidden } });
@@ -72,8 +80,22 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
     if (msg.type === 'upsert') {
       for (const file of msg.files || []) {
         STATE.workingIndex.files[file.path] = file;
+        // Also send to processor for database persistence
+        if (STATE.processor) {
+          STATE.processor.processEvent({
+            type: 'file_record',
+            path: file.path,
+            name: file.name || path.basename(file.path),
+            folder: file.folder || path.dirname(file.path),
+            size: file.size,
+            mtime: file.mtime,
+            hash: file.hash,
+            ext: file.ext,
+            category: file.category,
+          }).catch(err => console.error('[fm/scan-bg] processor error:', err.message));
+        }
       }
-      scheduleSave();
+      scheduleSave(60);
       return;
     }
 
@@ -81,7 +103,7 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
       for (const filePath of msg.paths || []) {
         delete STATE.workingIndex.files[filePath];
       }
-      scheduleSave();
+      scheduleSave(60);
       return;
     }
 
@@ -92,7 +114,17 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
         ...(msg.progress || {}),
         updatedAt: new Date().toISOString(),
       };
-      scheduleSave();
+      // Send progress event to processor
+      if (STATE.processor) {
+        STATE.processor.processEvent({
+          type: 'progress',
+          done: msg.progress?.scanned || 0,
+          total: msg.progress?.indexed || 0,
+          phase: msg.progress?.phase,
+          current_dir: msg.progress?.currentDir,
+        }).catch(err => console.error('[fm/scan-bg] processor error:', err.message));
+      }
+      scheduleSave(120);
       return;
     }
 
@@ -108,6 +140,14 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
       buildDerivedIndex(STATE.workingIndex);
       STATE.workingIndex.progress.groups = STATE.workingIndex.duplicateGroups.length;
       saveFileIndex(STATE.workingIndex);
+      
+      // Flush processor to database
+      if (STATE.processor) {
+        STATE.processor.flush()
+          .then(() => console.log('[fm/scan-bg] Scan flushed to database'))
+          .catch(err => console.error('[fm/scan-bg] Flush error:', err.message));
+      }
+      
       STATE.worker = null;
       return;
     }
@@ -121,6 +161,13 @@ function startScan(rootPath = ROOT_PATH, includeHidden = false) {
         updatedAt: new Date().toISOString(),
       };
       saveFileIndex(STATE.workingIndex);
+      
+      // Send error to processor
+      if (STATE.processor) {
+        STATE.processor.flush()
+          .catch(err => console.error('[fm/scan-bg] Flush error:', err.message));
+      }
+      
       STATE.worker = null;
     }
   });
@@ -146,6 +193,7 @@ function progressPayload() {
   return {
     rootPath: index.rootPath || ROOT_PATH,
     includeHidden: Boolean(index.includeHidden),
+    scanMode: index.scanMode || 'manual',
     status: STATE.worker ? 'scanning' : index.status,
     progress: index.progress || {},
     totals: {
@@ -163,7 +211,7 @@ export async function GET(req) {
   const includeHidden = searchParams.get('hidden') === '1';
 
   if (action === 'start' || action === 'auto') {
-    const index = startScan(rootPath, includeHidden);
+    const index = await startScan(rootPath, includeHidden, searchParams.get('mode') || 'manual');
     return Response.json({ started: true, rootPath: index.rootPath, includeHidden });
   }
 
@@ -226,6 +274,6 @@ export async function POST(req) {
     return Response.json({ stopped: true, status: index.status });
   }
 
-  const index = startScan(body.path || ROOT_PATH, Boolean(body.includeHidden));
+  const index = await startScan(body.path || ROOT_PATH, Boolean(body.includeHidden), body.mode || 'manual');
   return Response.json({ started: true, rootPath: index.rootPath, includeHidden: index.includeHidden });
 }

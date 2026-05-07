@@ -1,6 +1,6 @@
 'use client';
 // VirtualGridScroller.jsx - Efficient grid rendering for thousands of items
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
  * VirtualGridScroller - Renders only visible grid items
@@ -28,9 +28,20 @@ export default function VirtualGridScroller({
 }) {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(800);
+
+  useEffect(() => {
+    if (!containerRef.current) return undefined;
+    const el = containerRef.current;
+    const observer = new ResizeObserver(() => {
+      setContainerWidth(el.clientWidth || 800);
+    });
+    observer.observe(el);
+    setContainerWidth(el.clientWidth || 800);
+    return () => observer.disconnect();
+  }, []);
 
   // Calculate columns
-  const containerWidth = containerRef.current?.clientWidth || 800;
   const cols = Math.max(1, Math.floor(containerWidth / (colWidth + gap)));
 
   // Calculate visible rows
@@ -86,7 +97,8 @@ export default function VirtualGridScroller({
             left: 0,
             right: 0,
             display: 'grid',
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            gridTemplateColumns: `repeat(${cols}, minmax(0, ${colWidth}px))`,
+            justifyContent: 'start',
             gap: `${gap}px`,
             padding: gap,
             boxSizing: 'border-box',
