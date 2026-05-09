@@ -11,6 +11,7 @@ import {
   saveFileIndex,
 } from '../../../../lib/fm-cache.js';
 import { createScanProcessor } from '../../../../lib/db-scan.js';
+import { initializeDatabase } from '../../../../lib/init-db.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,6 +76,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
   STATE.worker = worker;
 
   worker.on('message', (msg) => {
+    console.log(`[fm/scan-bg] Worker message type: ${msg?.type}`);
     if (!STATE.workingIndex) STATE.workingIndex = loadFileIndex();
 
     if (msg.type === 'upsert') {
@@ -88,7 +90,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
             name: file.name || path.basename(file.path),
             folder: file.folder || path.dirname(file.path),
             size: file.size,
-            mtime: file.mtime,
+            mtime: Math.floor((file.modified || Date.now()) / 1000),
             hash: file.hash,
             ext: file.ext,
             category: file.category,
@@ -129,6 +131,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
     }
 
     if (msg.type === 'complete' || msg.type === 'stopped') {
+      console.log(`[fm/scan-bg] Worker finished with type=${msg.type}, progress=${JSON.stringify(msg.progress || {})}`);
       STATE.workingIndex.status = msg.status || (msg.type === 'complete' ? 'done' : 'stopped');
       STATE.workingIndex.rootPath = msg.rootPath || rootPath;
       STATE.workingIndex.includeHidden = Boolean(msg.includeHidden);
@@ -143,6 +146,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
       
       // Flush processor to database
       if (STATE.processor) {
+        console.log(`[fm/scan-bg] Flushing processor with ${STATE.processor.fileBuffer?.length || 0} files buffered`);
         STATE.processor.flush()
           .then(() => console.log('[fm/scan-bg] Scan flushed to database'))
           .catch(err => console.error('[fm/scan-bg] Flush error:', err.message));
@@ -261,6 +265,9 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  // Ensure database is initialized
+  await initializeDatabase();
+
   const body = await req.json().catch(() => ({}));
   const action = body.action || 'start';
 

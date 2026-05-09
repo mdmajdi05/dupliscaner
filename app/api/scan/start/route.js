@@ -5,13 +5,31 @@ import os from 'os';
 import { S, resetState, push } from '../../../../lib/state.js';
 import { addScan } from '../../../../lib/history.js';
 import { createScanProcessor, processScannerStream } from '../../../../lib/db-scan.js';
+import { getWorkerState } from '../../../../lib/db-ops.js';
+import { initializeDatabase } from '../../../../lib/init-db.js';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
   try {
+    await initializeDatabase();
+
     const { scanPath, includeHidden, mode, targetFile } = await req.json();
     if (!scanPath) return Response.json({ error: 'scanPath required' }, { status: 400 });
+
+    // Check for running scan - conflict detection
+    const workerState = getWorkerState();
+    if (workerState && workerState.current_scan_id && S.status === 'scanning') {
+      // Return conflict info to frontend
+      return Response.json({
+        status: 'conflict',
+        currentScan: {
+          type: workerState.current_scan_type || 'duplicates',
+          startedAt: workerState.started_at,
+          path: workerState.current_directory || S.scanPath,
+        }
+      }, { status: 409 });
+    }
 
     // kill existing
     if (S.proc) { try { S.proc.kill('SIGTERM'); } catch {} }
@@ -73,6 +91,8 @@ export async function POST(req) {
       try {
         await processor.flush();
         console.log(`[scan/start] Scan ${id} successfully flushed to database`);
+        // Save to history.json for UI sidebar
+        persistHistory(id, reportPath);
       } catch (err) {
         console.error(`[scan/start] Flush error:`, err.message);
       }

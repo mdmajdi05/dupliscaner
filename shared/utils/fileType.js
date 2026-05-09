@@ -11,3 +11,36 @@ export function getPreviewFileType(ext = '') {
   return 'other';
 }
 
+export function getFileIcon(ext) {
+  if (!ext) return '📄';
+  
+  const extLower = ext.toLowerCase();
+  
+  // Document types
+  if (['.pdf', '.doc', '.docx', '.txt', '.md'].includes(extLower)) return '📄';
+  
+  // Image types
+  if (IMAGE_EXTS.has(extLower)) return '🖼️';
+  
+  // Video types
+  if (VIDEO_EXTS.has(extLower)) return '🎬';
+  
+  // Audio types
+  if (AUDIO_EXTS.has(extLower)) return '🎵';
+  
+  // Archive types
+  if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(extLower)) return '📦';
+  
+  // Code types
+  if (['.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.cpp', '.c', '.h', '.cs'].includes(extLower)) return '💻';
+  
+  // Spreadsheet types
+  if (['.xls', '.xlsx', '.csv'].includes(extLower)) return '📊';
+  
+  // Presentation types
+  if (['.ppt', '.pptx', '.odp'].includes(extLower)) return '🎯';
+  
+  // Default
+  return '📄';
+}
+

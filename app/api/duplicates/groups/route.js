@@ -1,5 +1,6 @@
 // app/api/duplicates/groups/route.js - List duplicate groups
 import { queryDb, transactionDb } from '../../../../lib/db.js';
+import { initializeDatabase } from '../../../../lib/init-db.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,9 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req) {
   try {
+    // Ensure database is initialized
+    await initializeDatabase();
+
     const { searchParams } = new URL(req.url);
     const limit = Math.min(Number(searchParams.get('limit') || 100), 500);
     const offset = Number(searchParams.get('offset') || 0);
@@ -52,7 +56,7 @@ export async function GET(req) {
            FROM files
            WHERE duplicate_group_id = ?
            ORDER BY size DESC, file_mtime DESC`,
-          [group.hash]
+          [group.id]
         );
 
         return {

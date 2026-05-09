@@ -45,7 +45,8 @@ export default function DupScanWorkspace({
       />
       <StatsBar stats={stats} />
       <div className="flex-1 overflow-hidden">
-        {mainTab === 'list' ? <ResultsView {...shared} /> : <GalleryView {...shared} />}
+        {mainTab === 'list' && <ResultsView {...shared} />}
+        {mainTab === 'gallery' && <GalleryView {...shared} />}
       </div>
     </>
   );

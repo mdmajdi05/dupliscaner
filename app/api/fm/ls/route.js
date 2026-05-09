@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { queryDb, queryDbOne } from '../../../../lib/db.js';
+import { initializeDatabase } from '../../../../lib/init-db.js';
 import {
   ROOT_PATH,
   buildDerivedIndex,
@@ -12,6 +14,101 @@ import {
 } from '../../../../lib/fm-cache.js';
 
 export const dynamic = 'force-dynamic';
+
+// Get files from SQLite (FAST - no scanning)
+async function getFilesFromDb(dirPath, options = {}) {
+  const { category = '', ext = '', search = '', offset = 0, limit = 100 } = options;
+  const extNeedle = ext.trim().toLowerCase().replace(/^\*/, '');
+  const q = search.trim().toLowerCase();
+
+  let sql = `SELECT * FROM files WHERE dir = ? AND status = 'active'`;
+  const params = [dirPath];
+
+  if (category && category !== 'all') {
+    sql += ` AND category = ?`;
+    params.push(category);
+  }
+
+  if (extNeedle) {
+    sql += ` AND ext LIKE ?`;
+    params.push(`%${extNeedle}%`);
+  }
+
+  if (q) {
+    sql += ` AND (name LIKE ? OR path LIKE ?)`;
+    params.push(`%${q}%`, `%${q}%`);
+  }
+
+  sql += ` ORDER BY name ASC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+
+  try {
+    const files = await queryDb(sql, params);
+
+    // Get total count
+    let countSql = `SELECT COUNT(*) as total FROM files WHERE dir = ? AND status = 'active'`;
+    const countParams = [dirPath];
+    if (category && category !== 'all') {
+      countSql += ` AND category = ?`;
+      countParams.push(category);
+    }
+    const countResult = await queryDbOne(countSql, countParams);
+
+    return {
+      items: files.map(f => ({
+        name: f.name,
+        path: f.path,
+        ext: f.ext || '',
+        type: 'file',
+        category: f.category || 'Others',
+        size: f.size || 0,
+        sizeFmt: fmtSize(f.size || 0),
+        modified: (f.file_mtime || 0) * 1000,
+        folder: f.dir,
+        dupCount: f.is_duplicate ? 1 : 0,
+      })),
+      total: countResult?.total || 0,
+      offset,
+      limit,
+      hasMore: offset + limit < (countResult?.total || 0),
+      source: 'database',
+    };
+  } catch (err) {
+    console.error('[getFilesFromDb] Error:', err.message);
+    return null;
+  }
+}
+
+// Get folders from SQLite
+async function getFoldersFromDb(parentPath) {
+  try {
+    const folders = await queryDb(
+      `SELECT DISTINCT dir FROM files WHERE dir LIKE ? AND status = 'active' LIMIT 100`,
+      [`${parentPath}%`]
+    );
+
+    const folderMap = new Map();
+    for (const f of folders) {
+      const relPath = f.dir.substring(parentPath.length).split(/[/\\]/).filter(Boolean);
+      if (relPath.length > 0) {
+        const firstFolder = relPath[0];
+        if (!folderMap.has(firstFolder)) {
+          folderMap.set(firstFolder, {
+            name: firstFolder,
+            path: path.join(parentPath, firstFolder),
+            type: 'dir',
+            category: 'folder',
+          });
+        }
+      }
+    }
+
+    return Array.from(folderMap.values());
+  } catch (err) {
+    console.error('[getFoldersFromDb] Error:', err.message);
+    return [];
+  }
+}
 
 function directFileList(dirPath, options) {
   const { category = '', ext = '', search = '', offset = 0, limit = 100 } = options;
@@ -82,6 +179,33 @@ export async function GET(req) {
     const stat = fs.statSync(dirPath);
     if (!stat.isDirectory()) return Response.json({ error: 'Not a directory' }, { status: 400 });
 
+    // Initialize DB and try SQLite first (FAST!)
+    await initializeDatabase();
+
+    // If not dirsOnly, try to get files from SQLite (FAST - within 1 second)
+    if (!dirsOnly && !foldersOnly) {
+      const dbResult = await getFilesFromDb(dirPath, { category, ext, search, offset, limit });
+      if (dbResult && dbResult.items.length > 0) {
+        return Response.json(dbResult);
+      }
+    }
+
+    // If foldersOnly, get folders from SQLite
+    if (foldersOnly) {
+      const dbFolders = await getFoldersFromDb(dirPath);
+      if (dbFolders.length > 0) {
+        return Response.json({
+          items: dbFolders,
+          total: dbFolders.length,
+          offset: 0,
+          limit: dbFolders.length,
+          hasMore: false,
+          source: 'database',
+        });
+      }
+    }
+
+    // Fallback to fm-cache if SQLite has no data
     const index = loadFileIndex();
     buildDerivedIndex(index);
 

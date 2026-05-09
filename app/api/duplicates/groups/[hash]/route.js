@@ -36,7 +36,7 @@ export async function GET(req, { params }) {
        FROM files
        WHERE duplicate_group_id = ?
        ORDER BY size DESC, file_mtime DESC`,
-      [hash]
+      [group[0].id]
     );
 
     return Response.json({

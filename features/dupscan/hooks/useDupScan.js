@@ -7,6 +7,7 @@ import {
   deleteHistoryItem,
   fetchHistory,
   fetchHistoryItem,
+  fetchDuplicateGroups,
   patchHistoryItem,
   startDupScan,
   stopDupScan,
@@ -29,19 +30,45 @@ export default function useDupScan() {
   const [preview, setPreview] = useState(null);
   const [mainTab, setMainTab] = useState('list');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [conflict, setConflict] = useState(null);
   const esRef = useRef(null);
   const persistRef = useRef(null);
+  const pendingScanRef = useRef(null);
 
   const refreshHistory = useCallback(async () => {
     setHistory(await fetchHistory());
+  }, []);
+
+  // Load existing duplicates from SQLite on startup
+  const loadSavedDuplicates = useCallback(async () => {
+    try {
+      const data = await fetchDuplicateGroups(500, 0);
+      if (data?.groups?.length > 0) {
+        const transformed = data.groups.map(g => ({
+          id: g.id,
+          hash: g.hash,
+          count: g.file_count,
+          size: g.file_size,
+          waste: g.waste_bytes,
+          cat: g.files?.[0]?.category || 'Others',
+          ext: g.files?.[0]?.ext || '',
+          files: g.files || [],
+        }));
+        setLiveDups(transformed);
+        console.log('[useDupScan] Loaded', transformed.length, 'saved duplicate groups from DB');
+      }
+    } catch (err) {
+      console.error('[useDupScan] Failed to load saved duplicates:', err.message);
+    }
   }, []);
 
   useEffect(() => {
     if (initialized) return;
     const settings = getSettings();
     setAutoScanMode(settings.autoScan);
-    refreshHistory().finally(() => setInitialized(true));
-  }, [initialized, refreshHistory]);
+    // Load saved data first, then history
+    loadSavedDuplicates().then(() => refreshHistory()).finally(() => setInitialized(true));
+  }, [initialized, refreshHistory, loadSavedDuplicates]);
 
   const handleEv = useCallback((ev) => {
     switch (ev.type) {
@@ -79,16 +106,66 @@ export default function useDupScan() {
   }, [openStream]);
 
   const startScan = useCallback(async ({ path, hidden, mode, targetFile }) => {
-    setScanPath(path); setStatus('scanning'); setLiveDups([]);
+    setScanPath(path);
+    setLiveDups([]);
     setFileStatus({}); setKeepMap({}); setViewId(null); setViewScan(null);
     setProgress({ stage: 'Starting…', n: 0, done: 0, total: 0, dir: '' });
     updateSettings({ scanPath: path, includeHidden: hidden || false });
+
+    // Store pending scan for conflict resolution
+    pendingScanRef.current = { path, hidden, mode, targetFile };
+
     const data = await startDupScan({ scanPath: path, includeHidden: hidden, mode, targetFile });
-    if (data?.id) setScanId(data.id); else setStatus('error');
+
+    // Check for conflict - 409 response
+    if (data?.status === 'conflict') {
+      setConflict(data);
+      return;
+    }
+
+    if (data?.id) {
+      setScanId(data.id);
+      setStatus('scanning');
+    } else {
+      setStatus('error');
+    }
   }, []);
 
+  // Handle conflict - switch to new scan
+  const handleConflictSwitch = useCallback(async () => {
+    if (!pendingScanRef.current || !conflict) return;
+
+    const pending = pendingScanRef.current;
+
+    // Stop current scan first
+    await stopDupScan();
+
+    // Now start new scan
+    setConflict(null);
+    const data = await startDupScan({ scanPath: pending.path, includeHidden: pending.hidden, mode: pending.mode, targetFile: pending.targetFile });
+
+    if (data?.id) {
+      setScanId(data.id);
+      setStatus('scanning');
+    } else {
+      setStatus('error');
+    }
+
+    pendingScanRef.current = null;
+  }, [conflict]);
+
+  // Cancel conflict
+  const handleConflictCancel = useCallback(() => {
+    setConflict(null);
+    pendingScanRef.current = null;
+  }, []);
+
+  // Auto-scan only if: autoScan is enabled AND no data in DB
   useEffect(() => {
     if (!initialized || !autoScanMode || status !== 'idle') return;
+    // Only start scan if NO data was loaded from DB
+    // If dups loaded > 0, just show them - don't scan
+    if (liveDups.length > 0) return;
     if (!shouldAutoScan(history)) return;
     const settings = getSettings();
     startScan({
@@ -96,7 +173,7 @@ export default function useDupScan() {
       hidden: settings.includeHidden || false,
       mode: 'scan',
     });
-  }, [initialized, autoScanMode, status, history, startScan]);
+  }, [initialized, autoScanMode, status, history, startScan, liveDups.length]);
 
   const stopScan = useCallback(() => {
     stopDupScan();
@@ -197,6 +274,7 @@ export default function useDupScan() {
     dups,
     displayStatus,
     stats,
+    conflict,
     setFilter,
     setMainTab,
     setPreview,
@@ -209,6 +287,8 @@ export default function useDupScan() {
     updateFileStatus,
     clearFileStatus,
     updateKeep,
+    handleConflictSwitch,
+    handleConflictCancel,
     deleteFile,
   };
 }

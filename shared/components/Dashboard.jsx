@@ -38,6 +38,9 @@ export default function Dashboard() {
     clearFileStatus,
     updateKeep,
     deleteFile,
+    conflict,
+    handleConflictSwitch,
+    handleConflictCancel,
   } = useDupScan();
 
   const shared = useMemo(() => ({
@@ -66,8 +69,33 @@ export default function Dashboard() {
     setPreview,
   ]);
 
+  // Conflict Modal
+  const ConflictModal = conflict ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(7,9,12,.9)' }}>
+      <div className="rounded-xl p-6 w-96" style={{ background: 'var(--s2)', border: '1px solid var(--amber)' }}>
+        <div className="text-sm font-bold mb-3" style={{ color: 'var(--amber)' }}>
+          ⚠️ Scan Already Running
+        </div>
+        <p className="text-xs mb-4" style={{ color: 'var(--muted)' }}>
+          {conflict.currentScan?.type === 'duplicates' ? 'DupScan' : 'File Manager'} scan is running.
+          <br />Stop it and start new scan?
+        </p>
+        <div className="flex gap-2 justify-end">
+          <button className="btn-ghost px-4 py-2 rounded text-xs" onClick={handleConflictCancel}>
+            Cancel
+          </button>
+          <button className="btn-neon px-4 py-2 rounded text-xs" onClick={handleConflictSwitch}>
+            Yes, Stop & Start New
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
+    <>
+      {ConflictModal}
+      <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
       {sidebarOpen && (
         <AppSidebar
           history={history}
@@ -124,5 +152,6 @@ export default function Dashboard() {
         />
       )}
     </div>
+    </>
   );
 }
