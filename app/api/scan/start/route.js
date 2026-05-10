@@ -5,7 +5,7 @@ import os from 'os';
 import { S, resetState, push } from '../../../../lib/state.js';
 import { addScan } from '../../../../lib/history.js';
 import { createScanProcessor, processScannerStream } from '../../../../lib/db-scan.js';
-import { getWorkerState } from '../../../../lib/db-ops.js';
+import { getWorkerState, atomicStartScan, checkScanConflict } from '../../../../lib/db-ops.js';
 import { initializeDatabase } from '../../../../lib/init-db.js';
 
 export const dynamic = 'force-dynamic';
@@ -17,25 +17,37 @@ export async function POST(req) {
     const { scanPath, includeHidden, mode, targetFile } = await req.json();
     if (!scanPath) return Response.json({ error: 'scanPath required' }, { status: 400 });
 
-    // Check for running scan - conflict detection
-    const workerState = getWorkerState();
-    if (workerState && workerState.current_scan_id && S.status === 'scanning') {
-      // Return conflict info to frontend
+    // Check for running scan - conflict detection using atomicStartScan
+    const conflict = checkScanConflict();
+    if (conflict.hasConflict) {
       return Response.json({
         status: 'conflict',
         currentScan: {
-          type: workerState.current_scan_type || 'duplicates',
-          startedAt: workerState.started_at,
-          path: workerState.current_directory || S.scanPath,
+          type: conflict.currentScanType || 'duplicates',
+          startedAt: conflict.currentScan?.started_at,
+          path: conflict.currentScan?.root_path || S.scanPath,
         }
       }, { status: 409 });
+    }
+
+    // Atomically start scan - this ensures single worker rule
+    const id = `s_${Date.now()}`;
+    try {
+      atomicStartScan(id, 'duplicates', scanPath, includeHidden);
+    } catch (err) {
+      if (err.message === 'CONFLICT_SCAN_RUNNING') {
+        return Response.json({
+          status: 'conflict',
+          error: 'Another scan is already running'
+        }, { status: 409 });
+      }
+      throw err;
     }
 
     // kill existing
     if (S.proc) { try { S.proc.kill('SIGTERM'); } catch {} }
     resetState();
 
-    const id = `s_${Date.now()}`;
     S.scanId = id; S.scanPath = scanPath; S.startedAt = new Date().toISOString();
     S.status = 'scanning'; S.mode = mode || 'scan'; S.targetFile = targetFile || '';
 
@@ -69,10 +81,10 @@ export async function POST(req) {
       if (!line.trim()) return;
       try {
         const event = JSON.parse(line);
-        
+
         // Send to processor for database persistence
         await processor.processEvent(event);
-        
+
         // Also maintain legacy in-memory state for SSE
         if (event.type === 'dup') S.dups.push(event);
         else if (event.type === 'scanning') { S.progress.stage='Scanning files…'; S.progress.n=event.n; S.progress.dir=event.dir; }
@@ -103,10 +115,10 @@ export async function POST(req) {
     });
 
     proc.stderr.on('data', d => console.error('[scan/start] py:', d.toString().trim()));
-    
+
     proc.on('error', err => {
       S.status = 'error'; S.progress.stage = err.message;
-      push({ type:'error', msg: err.message }); 
+      push({ type:'error', msg: err.message });
       S.proc = null;
     });
 

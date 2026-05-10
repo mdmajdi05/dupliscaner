@@ -23,10 +23,10 @@ export async function GET(req) {
   const offset = Number(searchParams.get('offset') || 0);
   const limit = Math.max(1, Math.min(200, Number(searchParams.get('limit') || 100)));
 
-  // Initialize database
-  await initializeDatabase();
+  // Initialize database (sync)
+  initializeDatabase();
 
-  // Try SQLite first for duplicates
+  // Try SQLite first for duplicates (SYNC - FAST!)
   try {
     const sql = `
       SELECT dg.id, dg.hash, dg.file_count, dg.waste_bytes, dg.file_size, dg.created_at,
@@ -35,9 +35,10 @@ export async function GET(req) {
       JOIN files f ON f.duplicate_group_id = dg.id
       WHERE f.status = 'active'
       ORDER BY dg.waste_bytes DESC
+      LIMIT 5000
     `;
 
-    const rows = await queryDb(sql);
+    const rows = queryDb(sql);
 
     if (rows.length > 0) {
       // Group files by duplicate group

@@ -72,6 +72,17 @@ const TABS = [
 
 ];
 
+// FM Settings keys (centralized settings for FileManager)
+const FM_SETTINGS_KEY = 'dupscan-fm-settings';
+const defaultFmSettings = { autoScan: false, scanPath: 'C:\\', includeHidden: false };
+
+function getFmSettings() {
+  if (typeof window === 'undefined') return defaultFmSettings;
+  try { const s = localStorage.getItem(FM_SETTINGS_KEY); return s ? { ...defaultFmSettings, ...JSON.parse(s) } : defaultFmSettings; }
+  catch { return defaultFmSettings; }
+}
+function saveFmSettings(s) { if (typeof window === 'undefined') return; try { localStorage.setItem(FM_SETTINGS_KEY, JSON.stringify(s)); } catch {} }
+
 const DEFAULT_ROOT = 'C:\\';
 
 
@@ -82,9 +93,19 @@ const DEFAULT_ROOT = 'C:\\';
 
 export default function FileManagerDashboard() {
   const [activeTab, setActiveTab] = useState('all');
-  const [rootPath, setRootPath]   = useState(DEFAULT_ROOT);
-  const [inputPath, setInputPath] = useState(DEFAULT_ROOT);
-  const [curFolder, setCurFolder] = useState(DEFAULT_ROOT);
+  const [rootPath, setRootPath]   = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_ROOT;
+    const saved = getFmSettings();
+    return saved.scanPath || DEFAULT_ROOT;
+  });
+  const [inputPath, setInputPath] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_ROOT;
+    return getFmSettings().scanPath || DEFAULT_ROOT;
+  });
+  const [curFolder, setCurFolder] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_ROOT;
+    return getFmSettings().scanPath || DEFAULT_ROOT;
+  });
   const [files, setFiles]         = useState([]);
   const [total, setTotal]         = useState(0);
   const [offset, setOffset]       = useState(0);
@@ -103,7 +124,10 @@ export default function FileManagerDashboard() {
   const [sortDir, setSortDir]     = useState('asc');
   const [folderSort, setFolderSort] = useState('duplicates');
   const [showFolders, setShowFolders] = useState(false);
-  const [includeHidden, setIncludeHidden] = useState(false);
+  const [includeHidden, setIncludeHidden] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return getFmSettings().includeHidden || false;
+  });
   const [selected, setSelected]   = useState(new Set());
   const [preview, setPreview]     = useState(null);
 
@@ -119,7 +143,11 @@ export default function FileManagerDashboard() {
   const [folderStats, setFolderStats] = useState({});
   const [isAutoScanning, setIsAutoScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState({ phase: 'idle' });
-  const [scanMode, setScanMode] = useState('manual');
+  const [scanMode, setScanMode] = useState(() => {
+    if (typeof window === 'undefined') return 'manual';
+    const saved = localStorage.getItem('fm-scan-mode');
+    return (saved === 'auto' || saved === 'manual') ? saved : 'manual';
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
 
@@ -192,13 +220,17 @@ export default function FileManagerDashboard() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try { window.localStorage.setItem('fm-scan-mode', scanMode); } catch {}
-  }, [scanMode]);
+    // Save to centralized FM settings
+    const current = getFmSettings();
+    saveFmSettings({ ...current, scanPath: rootPath });
+  }, [rootPath]);
 
+  // Save includeHidden to centralized settings
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try { window.localStorage.setItem('fm-root-path', rootPath); } catch {}
-  }, [rootPath]);
+    const current = getFmSettings();
+    saveFmSettings({ ...current, includeHidden });
+  }, [includeHidden]);
 
   useEffect(() => {
     const init = async () => {
@@ -255,9 +287,14 @@ export default function FileManagerDashboard() {
     if (!append) setLoading(false);
   }, [activeTab, extFilter, folderSort, search, showFolders, sortBy, sortDir]);
 
+  // Load files immediately when curFolder changes - optimized
   useEffect(() => {
-    if (curFolder) { setFiles([]); loadFiles(curFolder, 0); }
-  }, [activeTab, curFolder, extFilter, folderSort, loadFiles, search, showFolders, sortBy, sortDir]);
+    if (curFolder) {
+      setFiles([]); // Clear immediately for instant feel
+      // Use setTimeout to allow UI to update first
+      setTimeout(() => loadFiles(curFolder, 0), 0);
+    }
+  }, [curFolder, activeTab]); // Only trigger on folder or tab change, not on every loadFiles change
 
   useEffect(() => {
     const pollInterval = setInterval(async () => {
@@ -269,6 +306,7 @@ export default function FileManagerDashboard() {
         for (const folder of foldersData.folders || []) stats[folder.path] = folder.count || 0;
         setFolderStats(stats);
       } catch {}
+      // Only reload if actively scanning - don't reload on status 'done' to avoid unnecessary API calls
       if (data?.status === 'scanning' && curFolder) {
         loadFiles(curFolder, 0, false);
       }
@@ -826,6 +864,9 @@ export default function FileManagerDashboard() {
             <option value="auto">Auto</option>
             <option value="manual">Manual</option>
           </select>
+          <span className={`text-xs px-2 py-0.5 rounded ${scanMode === 'auto' ? 'bg-green-900 text-green-400' : 'bg-gray-700 text-gray-400'}`}>
+            {scanMode === 'auto' ? 'AUTO' : 'MANUAL'}
+          </span>
 
           <button className="btn-ghost rounded p-1.5" title="Settings" onClick={() => setShowSettings(true)}>
             <Settings size={13} />

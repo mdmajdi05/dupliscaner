@@ -15,44 +15,48 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-// Get files from SQLite (FAST - no scanning)
-async function getFilesFromDb(dirPath, options = {}) {
+// Get files from SQLite (OPTIMIZED - single query with count)
+function getFilesFromDb(dirPath, options = {}) {
   const { category = '', ext = '', search = '', offset = 0, limit = 100 } = options;
   const extNeedle = ext.trim().toLowerCase().replace(/^\*/, '');
   const q = search.trim().toLowerCase();
 
-  let sql = `SELECT * FROM files WHERE dir = ? AND status = 'active'`;
-  const params = [dirPath];
+  // Build WHERE clause
+  let whereClause = 'WHERE dir = ? AND status = ?';
+  const params = [dirPath, 'active'];
+  let countParams = [dirPath, 'active'];
 
   if (category && category !== 'all') {
-    sql += ` AND category = ?`;
+    whereClause += ' AND category = ?';
     params.push(category);
+    countParams.push(category);
   }
 
   if (extNeedle) {
-    sql += ` AND ext LIKE ?`;
+    whereClause += ' AND ext LIKE ?';
     params.push(`%${extNeedle}%`);
+    countParams.push(`%${extNeedle}%`);
   }
 
   if (q) {
-    sql += ` AND (name LIKE ? OR path LIKE ?)`;
+    whereClause += ' AND (name LIKE ? OR path LIKE ?)';
     params.push(`%${q}%`, `%${q}%`);
+    countParams.push(`%${q}%`, `%${q}%`);
   }
 
-  sql += ` ORDER BY name ASC LIMIT ? OFFSET ?`;
-  params.push(limit, offset);
-
   try {
-    const files = await queryDb(sql, params);
+    // Single query: get files + count in one go using window function
+    const sql = `
+      SELECT *, COUNT(*) OVER() as total_count
+      FROM files
+      ${whereClause}
+      ORDER BY name ASC
+      LIMIT ? OFFSET ?
+    `;
+    params.push(limit, offset);
 
-    // Get total count
-    let countSql = `SELECT COUNT(*) as total FROM files WHERE dir = ? AND status = 'active'`;
-    const countParams = [dirPath];
-    if (category && category !== 'all') {
-      countSql += ` AND category = ?`;
-      countParams.push(category);
-    }
-    const countResult = await queryDbOne(countSql, countParams);
+    const files = queryDb(sql, params);
+    const total = files.length > 0 ? files[0].total_count || 0 : 0;
 
     return {
       items: files.map(f => ({
@@ -67,10 +71,10 @@ async function getFilesFromDb(dirPath, options = {}) {
         folder: f.dir,
         dupCount: f.is_duplicate ? 1 : 0,
       })),
-      total: countResult?.total || 0,
+      total,
       offset,
       limit,
-      hasMore: offset + limit < (countResult?.total || 0),
+      hasMore: offset + limit < total,
       source: 'database',
     };
   } catch (err) {
@@ -79,17 +83,22 @@ async function getFilesFromDb(dirPath, options = {}) {
   }
 }
 
-// Get folders from SQLite
-async function getFoldersFromDb(parentPath) {
+// Get folders from SQLite (OPTIMIZED - direct query)
+function getFoldersFromDb(parentPath) {
   try {
-    const folders = await queryDb(
-      `SELECT DISTINCT dir FROM files WHERE dir LIKE ? AND status = 'active' LIMIT 100`,
-      [`${parentPath}%`]
+    // Get immediate subdirectories directly
+    const folders = queryDb(
+      `SELECT DISTINCT dir FROM files
+       WHERE dir LIKE ? AND dir != ? AND status = 'active'
+       ORDER BY dir ASC LIMIT 50`,
+      [parentPath.replace(/\\/g, '/') + '/%', parentPath.replace(/\\/g, '/')]
     );
 
     const folderMap = new Map();
+    const parentNorm = parentPath.replace(/\\/g, '/');
+
     for (const f of folders) {
-      const relPath = f.dir.substring(parentPath.length).split(/[/\\]/).filter(Boolean);
+      const relPath = f.dir.replace(parentNorm, '').split('/').filter(Boolean);
       if (relPath.length > 0) {
         const firstFolder = relPath[0];
         if (!folderMap.has(firstFolder)) {
@@ -179,12 +188,12 @@ export async function GET(req) {
     const stat = fs.statSync(dirPath);
     if (!stat.isDirectory()) return Response.json({ error: 'Not a directory' }, { status: 400 });
 
-    // Initialize DB and try SQLite first (FAST!)
-    await initializeDatabase();
+    // Initialize DB (sync now)
+    initializeDatabase();
 
-    // If not dirsOnly, try to get files from SQLite (FAST - within 1 second)
+    // If not dirsOnly, try to get files from SQLite (FAST!)
     if (!dirsOnly && !foldersOnly) {
-      const dbResult = await getFilesFromDb(dirPath, { category, ext, search, offset, limit });
+      const dbResult = getFilesFromDb(dirPath, { category, ext, search, offset, limit });
       if (dbResult && dbResult.items.length > 0) {
         return Response.json(dbResult);
       }
@@ -192,7 +201,7 @@ export async function GET(req) {
 
     // If foldersOnly, get folders from SQLite
     if (foldersOnly) {
-      const dbFolders = await getFoldersFromDb(dirPath);
+      const dbFolders = getFoldersFromDb(dirPath);
       if (dbFolders.length > 0) {
         return Response.json({
           items: dbFolders,

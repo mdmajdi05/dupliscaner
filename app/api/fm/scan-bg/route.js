@@ -12,6 +12,7 @@ import {
 } from '../../../../lib/fm-cache.js';
 import { createScanProcessor } from '../../../../lib/db-scan.js';
 import { initializeDatabase } from '../../../../lib/init-db.js';
+import { atomicStartScan, checkScanConflict } from '../../../../lib/db-ops.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,12 +37,32 @@ function stopWorker() {
   if (!STATE.worker) return;
   try { STATE.worker.postMessage({ type: 'stop' }); } catch {}
   try { STATE.worker.terminate(); } catch {}
+
+  // Flush remaining buffered files before stopping
+  if (STATE.processor) {
+    STATE.processor.flush()
+      .then(() => console.log('[fm/scan-bg] Flushed on stop'))
+      .catch(err => console.error('[fm/scan-bg] Flush error on stop:', err.message));
+  }
+
   STATE.worker = null;
-  STATE.processor = null;
+  // Keep processor for a moment then clear after flush
+  setTimeout(() => { STATE.processor = null; }, 1000);
 }
 
 async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'manual') {
   stopWorker();
+
+  // Check for conflict using atomicStartScan
+  const scanId = `fm_${Date.now()}`;
+  try {
+    atomicStartScan(scanId, 'full', rootPath, includeHidden);
+  } catch (err) {
+    if (err.message === 'CONFLICT_SCAN_RUNNING') {
+      throw new Error('Another scan is already running');
+    }
+    throw err;
+  }
 
   const now = new Date().toISOString();
   STATE.workingIndex = loadFileIndex();
@@ -67,7 +88,6 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
   saveFileIndex(STATE.workingIndex);
 
   // Create ScanProcessor for database persistence
-  const scanId = `fm_${Date.now()}`;
   STATE.processor = await createScanProcessor(scanId, 'full');
 
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -143,7 +163,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
       buildDerivedIndex(STATE.workingIndex);
       STATE.workingIndex.progress.groups = STATE.workingIndex.duplicateGroups.length;
       saveFileIndex(STATE.workingIndex);
-      
+
       // Flush processor to database
       if (STATE.processor) {
         console.log(`[fm/scan-bg] Flushing processor with ${STATE.processor.fileBuffer?.length || 0} files buffered`);
@@ -151,7 +171,7 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
           .then(() => console.log('[fm/scan-bg] Scan flushed to database'))
           .catch(err => console.error('[fm/scan-bg] Flush error:', err.message));
       }
-      
+
       STATE.worker = null;
       return;
     }
@@ -165,13 +185,13 @@ async function startScan(rootPath = ROOT_PATH, includeHidden = false, mode = 'ma
         updatedAt: new Date().toISOString(),
       };
       saveFileIndex(STATE.workingIndex);
-      
+
       // Send error to processor
       if (STATE.processor) {
         STATE.processor.flush()
           .catch(err => console.error('[fm/scan-bg] Flush error:', err.message));
       }
-      
+
       STATE.worker = null;
     }
   });
@@ -215,6 +235,16 @@ export async function GET(req) {
   const includeHidden = searchParams.get('hidden') === '1';
 
   if (action === 'start' || action === 'auto') {
+    // Check conflict first
+    const conflict = checkScanConflict();
+    if (conflict.hasConflict) {
+      return Response.json({
+        error: 'Another scan is already running',
+        conflict: true,
+        currentScan: conflict.currentScan,
+      }, { status: 409 });
+    }
+
     const index = await startScan(rootPath, includeHidden, searchParams.get('mode') || 'manual');
     return Response.json({ started: true, rootPath: index.rootPath, includeHidden });
   }
@@ -279,6 +309,16 @@ export async function POST(req) {
       return idx;
     });
     return Response.json({ stopped: true, status: index.status });
+  }
+
+  // Check conflict before starting
+  const conflict = checkScanConflict();
+  if (conflict.hasConflict) {
+    return Response.json({
+      error: 'Another scan is already running',
+      conflict: true,
+      currentScan: conflict.currentScan,
+    }, { status: 409 });
   }
 
   const index = await startScan(body.path || ROOT_PATH, Boolean(body.includeHidden), body.mode || 'manual');
